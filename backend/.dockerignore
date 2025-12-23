@@ -1,0 +1,35 @@
+# Python
+__pycache__
+*.py[cod]
+*$py.class
+*.so
+.Python
+.venv
+venv
+ENV
+.pytest_cache
+
+# IDE
+.vscode
+.idea
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs (will be mounted as volume)
+logs/
+
+# Database (will be mounted as volume)
+database.db
+
+# Environment files (use docker-compose env instead)
+.env
+.env.local
+.env.*.local
+
+# Tests
+tests/
+pytest.ini
