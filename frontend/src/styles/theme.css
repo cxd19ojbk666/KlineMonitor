@@ -1,0 +1,284 @@
+:root {
+  /* 主色调 - Deep Blue #1967d2 */
+  --el-color-primary: #1967d2;
+  --el-color-primary-light-3: #5e94df;
+  --el-color-primary-light-5: #8cb3e8;
+  --el-color-primary-light-7: #bad1f1;
+  --el-color-primary-light-8: #d1e0f6;
+  --el-color-primary-light-9: #e8effa;
+  --el-color-primary-dark-2: #1452a8;
+
+  /* 功能色 */
+  --el-color-success: #67c23a;
+  --el-color-warning: #e6a23c;
+  --el-color-danger: #f56c6c;
+  --el-color-info: #909399;
+
+  /* 背景色 */
+  --bg-color: #f8f9fa;
+  --bg-color-overlay: #ffffff;
+  
+  /* 文字颜色 */
+  --text-color-primary: #303133;
+  --text-color-regular: #606266;
+  --text-color-secondary: #909399;
+  --text-color-placeholder: #a8abb2;
+
+  /* 边框颜色 */
+  --border-color-base: #dcdfe6;
+  --border-color-light: #e4e7ed;
+  --border-color-lighter: #ebeef5;
+  --border-color-extra-light: #f2f6fc;
+  --border-color: #dcdfe6;
+
+  /* 间距体系 (4px基准) */
+  --spacing-xs: 4px;
+  --spacing-sm: 8px;
+  --spacing-md: 16px;
+  --spacing-lg: 24px;
+  --spacing-xl: 32px;
+  --spacing-xxl: 48px;
+
+  /* 圆角体系 */
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
+  --radius-round: 9999px;
+
+  /* 阴影体系 */
+  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.04);
+  --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.08);
+  --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.12);
+  
+  /* 字体体系 */
+  --font-size-xs: 12px;
+  --font-size-sm: 14px;
+  --font-size-md: 16px;
+  --font-size-lg: 18px;
+  --font-size-xl: 20px;
+  --font-size-xxl: 24px;
+  
+  --font-weight-regular: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
+
+  /* 布局尺寸 */
+  --sidebar-width: 260px;
+  --sidebar-collapsed-width: 80px;
+  --header-height: 64px;
+  
+  /* 字体族 */
+  --font-family-monospace: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, Courier, monospace;
+}
+
+/* 统一 Element Plus 变量映射 */
+html {
+  --el-text-color-primary: var(--text-color-primary);
+  --el-text-color-regular: var(--text-color-regular);
+  --el-text-color-secondary: var(--text-color-secondary);
+  --el-text-color-placeholder: var(--text-color-placeholder);
+  --el-border-color: var(--border-color-base);
+  --el-bg-color: var(--bg-color-overlay);
+  --el-bg-color-page: var(--bg-color);
+  --el-border-radius-base: var(--radius-sm);
+  --el-border-radius-small: var(--radius-sm);
+  --el-border-radius-round: var(--radius-round);
+}
+
+body {
+  background-color: var(--el-bg-color-page);
+  color: var(--el-text-color-primary);
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, "Helvetica Neue", Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  font-size: var(--font-size-sm);
+  line-height: 1.5;
+}
+
+/* 统一卡片样式 */
+.el-card {
+  --el-card-border-color: var(--border-color-lighter);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--el-card-border-color);
+  background-color: var(--el-bg-color);
+  box-shadow: var(--shadow-sm);
+  transition: all 0.3s ease;
+}
+
+.el-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+/* 统一表格样式 */
+.el-table {
+  --el-table-border-color: var(--border-color-lighter);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  border: 1px solid var(--border-color-lighter);
+  box-shadow: var(--shadow-sm);
+}
+
+.el-table th.el-table__cell {
+  background-color: var(--bg-color);
+  font-weight: var(--font-weight-semibold);
+  color: var(--text-color-primary);
+  height: 48px;
+}
+
+/* 统一按钮样式 */
+.el-button {
+  font-weight: var(--font-weight-medium);
+  border-radius: var(--radius-md);
+}
+
+.el-button--primary {
+  --el-button-bg-color: var(--el-color-primary);
+  --el-button-border-color: var(--el-color-primary);
+  --el-button-hover-bg-color: var(--el-color-primary-light-3);
+  --el-button-hover-border-color: var(--el-color-primary-light-3);
+  --el-button-active-bg-color: var(--el-color-primary-dark-2);
+  --el-button-active-border-color: var(--el-color-primary-dark-2);
+}
+
+/* 页面主容器 */
+.page-wrapper {
+  display: flex;
+  flex-direction: column;
+  margin: calc(var(--spacing-lg) * -1) calc(var(--spacing-xl) * -1);
+  padding: var(--spacing-lg) var(--spacing-xl);
+  min-height: calc(100% + var(--spacing-xxl));
+  background-color: var(--bg-color-overlay);
+}
+
+.page-wrapper--card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-lg);
+  height: 100%;
+  overflow: hidden;
+}
+
+/* 页面顶部工具栏 */
+.page-toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--spacing-md);
+  flex-shrink: 0;
+  height: 40px;
+}
+
+.page-toolbar__left {
+  display: flex;
+  gap: var(--spacing-md);
+  align-items: center;
+}
+
+.page-toolbar__right {
+  display: flex;
+  gap: var(--spacing-md);
+  align-items: center;
+}
+
+.page-toolbar__divider {
+  width: 1px;
+  height: 24px;
+  background: var(--border-color-light);
+}
+
+/* 页面内容区域 */
+.page-content {
+  flex: 1;
+  overflow-y: auto;
+  padding-bottom: var(--spacing-md);
+  padding-right: 4px; /* Scrollbar space */
+  min-height: 0;
+}
+
+/* 页面底部 */
+.page-footer {
+  margin-top: auto;
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  padding-top: var(--spacing-md);
+  flex-shrink: 0;
+}
+
+/* 统一搜索输入框宽度 */
+.search-input {
+  width: 240px;
+}
+
+/* 统一筛选选择器宽度 */
+.filter-select {
+  width: 140px;
+}
+
+.filter-select--small {
+  width: 120px;
+}
+
+/* 卡片头部统一样式 */
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.card-header__title {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  font-size: var(--font-size-md);
+  font-weight: var(--font-weight-semibold);
+  color: var(--text-color-primary);
+}
+
+/* 网格布局 */
+.card-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: var(--spacing-lg);
+}
+
+.card-grid__item {
+  display: flex;
+  flex-direction: column;
+}
+
+.card-grid__item--compact {
+  display: flex;
+  flex-direction: column;
+}
+
+/* 时间文本 */
+.time-text {
+  color: var(--text-color-secondary);
+  font-size: var(--font-size-xs);
+  font-family: var(--font-family-monospace);
+}
+
+/* 列表过渡动画 */
+.list-enter-active,
+.list-leave-active {
+  transition: all 0.4s ease;
+}
+
+.list-enter-from,
+.list-leave-to {
+  opacity: 0;
+  transform: translateY(20px);
+}
+
+/* 上滑动画 */
+.animate-up {
+  animation: slideUp 0.5s ease backwards;
+}
+
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
