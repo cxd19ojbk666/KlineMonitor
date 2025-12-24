@@ -11,7 +11,7 @@ COPY package*.json ./
 RUN npm ci --registry=https://registry.npmmirror.com || npm install --registry=https://registry.npmmirror.com
 
 COPY . .
-RUN npm run build
+RUN npm run build:prod
 
 FROM nginx:alpine
 COPY --from=builder /app/dist /usr/share/nginx/html
