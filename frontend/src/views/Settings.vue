@@ -328,7 +328,7 @@ const fetchConfigs = async () => {
 const fetchSymbolConfigs = async () => {
   symbolConfigLoading.value = true
   try {
-    const data = await getSymbolConfigs({ limit: 500 })
+    const data = await getSymbolConfigs({ limit: 10000 })
     symbolConfigs.value = data.items
   } catch (error) {
     logger.error('获取币种配置失败', error, { sampling: 10000 })
@@ -339,7 +339,7 @@ const fetchSymbolConfigs = async () => {
 
 const fetchAllSymbols = async () => {
   try {
-    const data = await getSymbols({ limit: 500, is_active: true })
+    const data = await getSymbols({ limit: 10000, is_active: true })
     allSymbols.value = data.items.map(s => s.symbol)
   } catch (error) {
     logger.error('获取币种列表失败', error, { sampling: 10000 })

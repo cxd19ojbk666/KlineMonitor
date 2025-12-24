@@ -2,9 +2,14 @@
   <div class="page-wrapper">
     <div class="page-toolbar">
       <div class="page-toolbar__left">
-        <el-select v-model="selectedSymbol" placeholder="选择交易对" style="width: 160px" @change="fetchData" filterable>
-          <el-option v-for="item in symbolOptions" :key="item.value" :label="item.label" :value="item.value" />
-        </el-select>
+        <el-select-v2
+          v-model="selectedSymbol"
+          :options="symbolOptions"
+          placeholder="选择交易对"
+          style="width: 160px"
+          @change="fetchData"
+          filterable
+        />
         <div class="page-toolbar__divider"></div>
         <el-radio-group v-model="interval" @change="fetchData" size="default">
           <el-radio-button value="15m">15分</el-radio-button>
@@ -208,7 +213,7 @@ const formatVolume = (volume: number): string => {
 
 const loadSymbolOptions = async () => {
   try {
-    const response = await getSymbols({ is_active: true, limit: 500 })
+    const response = await getSymbols({ is_active: true, limit: 10000 })
     symbolOptions.value = response.items.map(item => ({ label: item.symbol, value: item.symbol }))
     if (symbolOptions.value.length > 0 && !selectedSymbol.value) selectedSymbol.value = symbolOptions.value[0].value
   } catch (error) {

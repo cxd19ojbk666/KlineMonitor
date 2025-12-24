@@ -10,19 +10,13 @@
   >
     <el-form :model="form" label-width="140px">
       <el-form-item label="选择交易对" v-if="!isEdit">
-        <el-select
+        <el-select-v2
           v-model="form.symbol"
+          :options="symbolSelectOptions"
           filterable
           placeholder="请选择交易对"
           style="width: 100%;"
-        >
-          <el-option
-            v-for="symbol in availableSymbols"
-            :key="symbol"
-            :label="symbol"
-            :value="symbol"
-          />
-        </el-select>
+        />
       </el-form-item>
       <el-form-item label="交易对" v-else>
         <el-input v-model="form.symbol" disabled />
@@ -78,7 +72,7 @@
 </template>
 
 <script setup lang="ts">
-import { reactive, watch } from 'vue'
+import { reactive, watch, computed } from 'vue'
 import type { SymbolConfig } from '@/types'
 
 const visible = defineModel<boolean>({ default: false })
@@ -119,6 +113,10 @@ const form = reactive({
   price_error: null as number | null,
   middle_kline_cnt: null as number | null,
   fake_kline_cnt: null as number | null
+})
+
+const symbolSelectOptions = computed(() => {
+  return props.availableSymbols.map(s => ({ value: s, label: s }))
 })
 
 watch(visible, (val) => {
