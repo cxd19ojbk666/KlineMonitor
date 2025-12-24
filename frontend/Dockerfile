@@ -2,8 +2,13 @@ FROM node:20-alpine AS builder
 
 WORKDIR /app
 
+# Install build dependencies for native modules
+RUN apk add --no-cache python3 make g++
+
 COPY package*.json ./
-RUN npm install --registry=https://registry.npmmirror.com
+
+# Clean install to ensure native modules are built for Alpine
+RUN npm ci --registry=https://registry.npmmirror.com || npm install --registry=https://registry.npmmirror.com
 
 COPY . .
 RUN npm run build
