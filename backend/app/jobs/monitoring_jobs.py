@@ -22,7 +22,9 @@ from ..services.binance_client import binance_client
 from ..services.monitor_service import monitor_service
 
 # 并发控制常量
-SYNC_CONCURRENCY = 600  # K线同步最大并发数
+SYNC_CONCURRENCY = 600  # K线同步最大并发数（已初始化的增量同步）
+INITIAL_SYNC_CONCURRENCY = 20  # 初始同步最大并发数（控制API请求量）
+INITIAL_SYNC_BATCH_SIZE = 5  # 每分钟最多初始化的新交易对数量
 MONITOR_CONCURRENCY = 50  # 监控任务最大并发数
 
 
@@ -37,6 +39,45 @@ async def get_active_symbols() -> List[str]:
     try:
         symbols = db.query(Symbol).filter(Symbol.is_active == True).all()
         return [s.symbol for s in symbols]
+    finally:
+        db.close()
+
+
+async def get_synced_and_unsynced_symbols() -> tuple:
+    """
+    获取已初始化和未初始化的活跃交易对
+    
+    Returns:
+        (已初始化列表, 未初始化列表)
+    """
+    db = SessionLocal()
+    try:
+        synced = db.query(Symbol).filter(
+            Symbol.is_active == True,
+            Symbol.initial_synced == True
+        ).all()
+        unsynced = db.query(Symbol).filter(
+            Symbol.is_active == True,
+            Symbol.initial_synced == False
+        ).all()
+        return ([s.symbol for s in synced], [s.symbol for s in unsynced])
+    finally:
+        db.close()
+
+
+def mark_symbol_synced(symbol: str):
+    """
+    标记交易对已完成初始同步
+    
+    Args:
+        symbol: 交易对名称
+    """
+    db = SessionLocal()
+    try:
+        db.query(Symbol).filter(Symbol.symbol == symbol).update(
+            {"initial_synced": True}
+        )
+        db.commit()
     finally:
         db.close()
 
@@ -114,12 +155,35 @@ async def sync_single_interval(symbol: str, interval: str, semaphore: asyncio.Se
             return (symbol, interval, 0, str(e))
 
 
+async def sync_initial_symbol(symbol: str, intervals: List[str], semaphore: asyncio.Semaphore) -> bool:
+    """
+    对单个交易对执行初始同步（所有周期）
+    
+    Args:
+        symbol: 交易对
+        intervals: 需要同步的周期列表
+        semaphore: 并发控制信号量
+    
+    Returns:
+        是否全部成功
+    """
+    success = True
+    async with semaphore:
+        for interval in intervals:
+            try:
+                await binance_client.sync_klines(symbol, interval=interval, force=True)
+            except Exception as e:
+                logger.debug(f"[初始同步] {symbol} {interval} 失败: {e}")
+                success = False
+    return success
+
+
 async def sync_klines_task():
     """
-    统一K线数据同步任务
+    统一K线数据同步任务（支持渐进式初始化）
     
-    根据当前时间判断需要同步的周期，使用信号量控制并发度，最大化网络带宽利用
-    同步完成后自动触发监控任务
+    - 已初始化的交易对：正常增量同步，高并发
+    - 未初始化的交易对：每分钟只处理N个，低并发，完成后标记为已初始化
     """
     if not is_scheduler_running():
         return
@@ -127,29 +191,59 @@ async def sync_klines_task():
     trigger_time = datetime.now()
     
     try:
-        symbols = await get_active_symbols()
+        # 区分已初始化和未初始化的交易对
+        synced_symbols, unsynced_symbols = await get_synced_and_unsynced_symbols()
         
-        if not symbols:
+        if not synced_symbols and not unsynced_symbols:
             return
         
         intervals = get_intervals_to_sync(trigger_time)
+        # 初始同步使用所有周期
+        all_intervals = ["1m", "15m", "30m", "1h", "4h", "1d", "3d"]
         
-        logger.info(f"[K线同步] 开始 - {trigger_time.strftime('%Y-%m-%d %H:%M:%S')} | 周期: {', '.join(intervals)} | 交易对: {len(symbols)}个")
+        # 本次要初始化的交易对（限制数量）
+        to_initialize = unsynced_symbols[:INITIAL_SYNC_BATCH_SIZE]
+        
+        logger.info(
+            f"[K线同步] 开始 - {trigger_time.strftime('%Y-%m-%d %H:%M:%S')} | "
+            f"周期: {', '.join(intervals)} | "
+            f"增量同步: {len(synced_symbols)}个 | "
+            f"初始同步: {len(to_initialize)}/{len(unsynced_symbols)}个"
+        )
         
         # 启动统计收集
         sync_stats_collector.start_batch()
         
-        semaphore = asyncio.Semaphore(SYNC_CONCURRENCY)
+        # ===== 1. 已初始化交易对的增量同步（高并发） =====
+        if synced_symbols:
+            semaphore = asyncio.Semaphore(SYNC_CONCURRENCY)
+            tasks = [
+                sync_single_interval(symbol, interval, semaphore)
+                for symbol in synced_symbols
+                for interval in intervals
+            ]
+            await asyncio.gather(*tasks, return_exceptions=True)
         
-        # 创建所有同步任务
-        tasks = [
-            sync_single_interval(symbol, interval, semaphore)
-            for symbol in symbols
-            for interval in intervals
-        ]
-        
-        # 并发执行所有任务
-        await asyncio.gather(*tasks, return_exceptions=True)
+        # ===== 2. 未初始化交易对的初始同步（低并发，限量） =====
+        if to_initialize:
+            logger.info(f"[初始同步] 开始初始化 {len(to_initialize)} 个新交易对: {', '.join(to_initialize)}")
+            init_semaphore = asyncio.Semaphore(INITIAL_SYNC_CONCURRENCY)
+            
+            init_tasks = [
+                sync_initial_symbol(symbol, all_intervals, init_semaphore)
+                for symbol in to_initialize
+            ]
+            results = await asyncio.gather(*init_tasks, return_exceptions=True)
+            
+            # 标记成功初始化的交易对
+            initialized_count = 0
+            for symbol, result in zip(to_initialize, results):
+                if result is True:
+                    mark_symbol_synced(symbol)
+                    initialized_count += 1
+            
+            remaining = len(unsynced_symbols) - len(to_initialize)
+            logger.info(f"[初始同步] 完成 {initialized_count}/{len(to_initialize)} 个，剩余待初始化: {remaining} 个")
         
         # 完成统计并输出汇总
         stats = sync_stats_collector.finish_batch()
@@ -164,9 +258,9 @@ async def sync_klines_task():
             "elapsed": stats.get_duration() if stats else 0
         })
         
-        # 触发监控任务
-        if stats and stats.success_count > 0:
-            await run_monitor_task(symbols)
+        # 触发监控任务（仅对已初始化的交易对）
+        if synced_symbols and stats and stats.success_count > 0:
+            await run_monitor_task(synced_symbols)
         
     except Exception as e:
         logger.error(f"[K线同步] 任务异常: {e}", exc_info=True)

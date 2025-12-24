@@ -22,6 +22,8 @@ class Symbol(Base):
     symbol = Column(String(50), unique=True, nullable=False, index=True)
     # 是否启用监控
     is_active = Column(Boolean, default=True)
+    # 是否已完成初始同步（用于渐进式初始化）
+    initial_synced = Column(Boolean, default=False)
     # 添加时间
     created_at = Column(DateTime, default=datetime.utcnow)
 

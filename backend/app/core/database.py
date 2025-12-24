@@ -38,3 +38,33 @@ def init_db():
     
     # 创建所有表
     Base.metadata.create_all(bind=engine)
+    
+    # 迁移：添加 initial_synced 列（如果不存在）
+    _migrate_add_initial_synced_column()
+
+
+def _migrate_add_initial_synced_column():
+    """
+    迁移：为 symbols 表添加 initial_synced 列
+    并将已有K线数据的交易对标记为已初始化
+    """
+    from sqlalchemy import text
+    
+    with engine.connect() as conn:
+        # 检查列是否存在
+        result = conn.execute(text("PRAGMA table_info(symbols)"))
+        columns = [row[1] for row in result.fetchall()]
+        
+        if "initial_synced" not in columns:
+            # 添加列
+            conn.execute(text("ALTER TABLE symbols ADD COLUMN initial_synced BOOLEAN DEFAULT 0"))
+            conn.commit()
+            print("[Migration] 已添加 initial_synced 列")
+            
+            # 将已有K线数据的交易对标记为已初始化
+            conn.execute(text("""
+                UPDATE symbols SET initial_synced = 1 
+                WHERE symbol IN (SELECT DISTINCT symbol FROM price_klines)
+            """))
+            conn.commit()
+            print("[Migration] 已将现有交易对标记为已初始化")

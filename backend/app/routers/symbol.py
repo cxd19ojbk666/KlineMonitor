@@ -73,6 +73,35 @@ async def create_symbol(symbol_data: SymbolCreate, db: Session = Depends(get_db_
 
 # ========== 静态路由必须在动态路由之前 ==========
 
+@router.get("/init-progress")
+def get_init_progress(db: Session = Depends(get_db_session)):
+    """
+    获取交易对初始化进度
+    
+    返回已初始化和未初始化的交易对数量
+    """
+    from ..jobs.monitoring_jobs import INITIAL_SYNC_BATCH_SIZE
+    
+    total = db.query(Symbol).filter(Symbol.is_active == True).count()
+    synced = db.query(Symbol).filter(
+        Symbol.is_active == True,
+        Symbol.initial_synced == True
+    ).count()
+    unsynced = total - synced
+    
+    # 估算剩余时间（每分钟初始化 INITIAL_SYNC_BATCH_SIZE 个）
+    estimated_minutes = (unsynced + INITIAL_SYNC_BATCH_SIZE - 1) // INITIAL_SYNC_BATCH_SIZE if unsynced > 0 else 0
+    
+    return {
+        "total": total,
+        "synced": synced,
+        "unsynced": unsynced,
+        "progress_percent": round(synced / total * 100, 1) if total > 0 else 100,
+        "batch_size": INITIAL_SYNC_BATCH_SIZE,
+        "estimated_minutes": estimated_minutes
+    }
+
+
 @router.get("/available")
 async def get_available_symbols(db: Session = Depends(get_db_session)):
     """
