@@ -87,7 +87,7 @@ const unregisterRefreshCallback = inject<(cb: () => Promise<void>) => void>('unr
 
 const refreshCallback = async () => {
   await fetchData()
-  ElMessage.success('数据已刷新')
+  ElMessage.success('刷新成功')
 }
 
 const statCards = computed(() => [
@@ -114,7 +114,7 @@ const fetchData = async () => {
 const handleDelete = (id: number) => {
   ElMessageBox.confirm(
     '确定要删除这条记录吗?',
-    '删除确认',
+    '确认删除',
     {
       confirmButtonText: '删除',
       cancelButtonText: '取消',

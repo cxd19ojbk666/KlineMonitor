@@ -1,15 +1,16 @@
 <template>
   <el-dialog
     v-model="visible"
-    :title="isEdit ? '编辑交易对配置' : '添加交易对配置'"
+    :title="isEdit ? '修改交易对配置' : '新增交易对配置'"
     width="480px"
     class="unified-dialog"
     align-center
     center
     :show-close="false"
+    destroy-on-close
   >
     <el-form :model="form" label-width="140px">
-      <el-form-item label="选择交易对" v-if="!isEdit">
+      <el-form-item label="搜索交易对" v-if="!isEdit">
         <el-select-v2
           v-model="form.symbol"
           :options="symbolSelectOptions"
@@ -21,12 +22,12 @@
       <el-form-item label="交易对" v-else>
         <el-input v-model="form.symbol" disabled />
       </el-form-item>
-      <el-form-item label="K线间隔" v-if="!isEdit">
-        <el-select v-model="form.interval" placeholder="请选择K线间隔" style="width: 100%;">
+      <el-form-item label="K线周期" v-if="!isEdit">
+        <el-select v-model="form.interval" placeholder="请选择K线周期" style="width: 100%;">
           <el-option v-for="item in intervalOptions" :key="item.value" :label="item.label" :value="item.value" />
         </el-select>
       </el-form-item>
-      <el-form-item label="K线间隔" v-else>
+      <el-form-item label="K线周期" v-else>
         <el-input v-model="form.interval" disabled />
       </el-form-item>
       <el-form-item label="开盘价误差 (%)">
@@ -52,7 +53,7 @@
           placeholder="留空使用全局配置"
         />
       </el-form-item>
-      <el-form-item label="假K线数量">
+      <el-form-item label="假K线容忍数">
         <el-input-number
           v-model="form.fake_kline_cnt"
           :min="1"
@@ -65,8 +66,10 @@
       </el-form-item>
     </el-form>
     <template #footer>
-      <el-button @click="handleCancel" size="large">取消</el-button>
-      <el-button type="primary" @click="handleConfirm" :loading="loading" size="large">保存</el-button>
+      <div class="dialog-footer">
+        <el-button @click="handleCancel" size="large">取消</el-button>
+        <el-button type="primary" @click="handleConfirm" :loading="loading" size="large" class="submit-btn">保存</el-button>
+      </div>
     </template>
   </el-dialog>
 </template>

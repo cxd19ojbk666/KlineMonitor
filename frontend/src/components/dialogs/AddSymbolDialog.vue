@@ -1,7 +1,7 @@
 <template>
   <el-dialog
     v-model="visible"
-    title="添加交易对"
+    title="新增交易对"
     width="420px"
     destroy-on-close
     class="add-symbol-dialog unified-dialog"

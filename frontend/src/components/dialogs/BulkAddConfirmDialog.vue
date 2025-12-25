@@ -1,7 +1,7 @@
 <template>
   <el-dialog
     v-model="visible"
-    title="批量添加交易对"
+    title="批量新增交易对"
     width="480px"
     destroy-on-close
     class="add-symbol-dialog unified-dialog"

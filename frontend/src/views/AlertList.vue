@@ -4,7 +4,7 @@
       <div class="page-toolbar__left">
         <el-input
           v-model="filters.symbol"
-          placeholder="搜索交易对..."
+          placeholder="输入交易对名称"
           clearable
           class="search-input"
           @keyup.enter="handleSearch"
@@ -30,7 +30,7 @@
 
       <div class="page-toolbar__right">
         <el-button type="danger" plain @click="handleClearAll">
-          清空当前记录
+          清空提醒记录
         </el-button>
       </div>
     </div>
@@ -111,7 +111,7 @@ const handleSizeChange = () => { currentPage.value = 1; fetchData() }
 const handleDelete = (id: number) => {
   ElMessageBox.confirm(
     '确定要删除这条记录吗?',
-    '删除确认',
+    '确认删除',
     {
       confirmButtonText: '删除',
       cancelButtonText: '取消',
@@ -133,7 +133,7 @@ const handleDelete = (id: number) => {
 const handleClearAll = () => {
   ElMessageBox.confirm(
     '确定要清空当前筛选条件下的所有记录吗?',
-    '清空确认',
+    '确认清空',
     {
       confirmButtonText: '确认清空',
       cancelButtonText: '取消',

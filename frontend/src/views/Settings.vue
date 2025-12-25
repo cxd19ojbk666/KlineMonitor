@@ -3,177 +3,172 @@
     <div class="page-content settings-content">
       <el-form ref="formRef" :model="form" :rules="rules" v-loading="loading" class="settings-form">
         
-        <!-- Main Settings Container -->
-        <el-card class="main-settings-card" shadow="never">
-          
-          <!-- Global Strategy Section -->
-          <div class="settings-section">
-            <div class="section-header">
-              <div class="header-icon-wrapper bg-blue">
-                <el-icon><Operation /></el-icon>
+        <!-- Global Strategy Section -->
+        <div class="settings-section">
+          <div class="section-header">
+            <div class="header-icon-wrapper bg-blue">
+              <el-icon><Operation /></el-icon>
+            </div>
+            <div class="header-text">
+              <span class="section-title">全局策略配置</span>
+              <span class="section-subtitle">配置适用于所有交易对的基础监控参数和匹配规则</span>
+            </div>
+          </div>
+
+          <div class="params-grid">
+            <!-- Volume Group -->
+            <div class="param-group">
+              <div class="group-label">
+                <el-icon><DataLine /></el-icon>
+                <span>成交量监控</span>
               </div>
-              <div class="header-text">
-                <span class="section-title">全局策略配置</span>
-                <span class="section-subtitle">配置适用于所有币种的基础监控参数和匹配规则</span>
+              <div class="monitor-params-row">
+                <div class="param-item">
+                  <span class="param-label">触发阈值</span>
+                  <div class="param-input-wrapper">
+                    <el-input-number 
+                      v-model="form.volume_percent" 
+                      :min="0.1" :max="100" :precision="1" :step="0.5" :controls="false"
+                      size="large"
+                      class="unified-input"
+                    />
+                    <span class="unit">%</span>
+                  </div>
+                </div>
+                <div class="param-item">
+                  <span class="param-label">冷却时间</span>
+                  <div class="param-input-wrapper">
+                    <el-input-number 
+                      v-model="form.volume_reminder_interval" 
+                      :min="0" :max="1440" :precision="0" :controls="false"
+                      size="large"
+                      class="unified-input"
+                    />
+                    <span class="unit">分</span>
+                  </div>
+                </div>
               </div>
             </div>
 
-            <div class="params-grid">
-              <!-- Volume Group -->
-              <div class="param-group">
-                <div class="group-label">
-                  <el-icon><DataLine /></el-icon>
-                  <span>成交量监控</span>
-                </div>
-                <div class="monitor-params-row">
-                  <div class="param-item">
-                    <span class="param-label">触发阈值</span>
-                    <div class="param-input-wrapper">
-                      <el-input-number 
-                        v-model="form.volume_percent" 
-                        :min="0.1" :max="100" :precision="1" :step="0.5" :controls="false"
-                        size="large"
-                        class="unified-input"
-                      />
-                      <span class="unit">%</span>
-                    </div>
+            <!-- Rise Group -->
+            <div class="param-group">
+              <div class="group-label">
+                <el-icon><TrendCharts /></el-icon>
+                <span>涨幅监控</span>
+              </div>
+              <div class="monitor-params-row">
+                <div class="param-item">
+                  <span class="param-label">触发阈值</span>
+                  <div class="param-input-wrapper">
+                    <el-input-number 
+                      v-model="form.rise_threshold" 
+                      :min="1" :max="100" :precision="1" :step="0.5" :controls="false"
+                      size="large"
+                      class="unified-input"
+                    />
+                    <span class="unit">%</span>
                   </div>
-                  <div class="param-item">
-                    <span class="param-label">提醒间隔</span>
-                    <div class="param-input-wrapper">
-                      <el-input-number 
-                        v-model="form.volume_reminder_interval" 
-                        :min="0" :max="1440" :precision="0" :controls="false"
-                        size="large"
-                        class="unified-input"
-                      />
-                      <span class="unit">分</span>
-                    </div>
+                </div>
+                <div class="param-item">
+                  <span class="param-label">冷却时间</span>
+                  <div class="param-input-wrapper">
+                    <el-input-number 
+                      v-model="form.rise_reminder_interval" 
+                      :min="0" :max="1440" :precision="0" :controls="false"
+                      size="large"
+                      class="unified-input"
+                    />
+                    <span class="unit">分</span>
                   </div>
                 </div>
               </div>
+            </div>
 
-              <!-- Rise Group -->
-              <div class="param-group">
-                <div class="group-label">
-                  <el-icon><TrendCharts /></el-icon>
-                  <span>涨幅监控</span>
-                </div>
-                <div class="monitor-params-row">
-                  <div class="param-item">
-                    <span class="param-label">触发阈值</span>
-                    <div class="param-input-wrapper">
-                      <el-input-number 
-                        v-model="form.rise_threshold" 
-                        :min="1" :max="100" :precision="1" :step="0.5" :controls="false"
-                        size="large"
-                        class="unified-input"
-                      />
-                      <span class="unit">%</span>
-                    </div>
-                  </div>
-                  <div class="param-item">
-                    <span class="param-label">提醒间隔</span>
-                    <div class="param-input-wrapper">
-                      <el-input-number 
-                        v-model="form.rise_reminder_interval" 
-                        :min="0" :max="1440" :precision="0" :controls="false"
-                        size="large"
-                        class="unified-input"
-                      />
-                      <span class="unit">分</span>
-                    </div>
-                  </div>
-                </div>
+            <!-- Price Match Group -->
+            <div class="param-group wide-group">
+              <div class="group-label">
+                <el-icon><Connection /></el-icon>
+                <span>开盘价匹配规则</span>
               </div>
-
-              <!-- Price Match Group -->
-              <div class="param-group wide-group">
-                <div class="group-label">
-                  <el-icon><Connection /></el-icon>
-                  <span>开盘价匹配规则</span>
+              <div class="wide-params-container">
+                <div class="param-item">
+                  <span class="param-label">开盘价误差</span>
+                  <div class="param-input-wrapper">
+                    <el-input-number 
+                      v-model="form.price_error" 
+                      :min="0.1" :max="10" :precision="1" :step="0.1" :controls="false"
+                      size="large"
+                      class="unified-input"
+                    />
+                    <span class="unit">%</span>
+                  </div>
                 </div>
-                <div class="wide-params-container">
-                  <div class="param-item">
-                    <span class="param-label">开盘价误差</span>
-                    <div class="param-input-wrapper">
-                      <el-input-number 
-                        v-model="form.price_error" 
-                        :min="0.1" :max="10" :precision="1" :step="0.1" :controls="false"
-                        size="large"
-                        class="unified-input"
-                      />
-                      <span class="unit">%</span>
-                    </div>
+                <div class="param-item">
+                  <span class="param-label">最小间隔K线数</span>
+                  <div class="param-input-wrapper">
+                    <el-input-number 
+                      v-model="form.middle_kline_cnt" 
+                      :min="0" :max="100" :precision="0" :controls="false"
+                      size="large"
+                      class="unified-input"
+                    />
+                    <span class="unit">根</span>
                   </div>
-                  <div class="param-item">
-                    <span class="param-label">最小间隔K线</span>
-                    <div class="param-input-wrapper">
-                      <el-input-number 
-                        v-model="form.middle_kline_cnt" 
-                        :min="0" :max="100" :precision="0" :controls="false"
-                        class="unified-input"
-                      />
-                      <span class="unit">根</span>
-                    </div>
+                </div>
+                <div class="param-item">
+                  <span class="param-label">假K线容忍数</span>
+                  <div class="param-input-wrapper">
+                    <el-input-number 
+                      v-model="form.fake_count_n" 
+                      :min="1" :max="50" :precision="0" :controls="false"
+                      size="large"
+                      class="unified-input"
+                    />
+                    <span class="unit">根</span>
                   </div>
-                  <div class="param-item">
-                    <span class="param-label">假K线容忍</span>
-                    <div class="param-input-wrapper">
-                      <el-input-number 
-                        v-model="form.fake_count_n" 
-                        :min="1" :max="50" :precision="0" :controls="false"
-                        size="large"
-                        class="unified-input"
-                      />
-                      <span class="unit">根</span>
-                    </div>
-                  </div>
-                  <div class="param-item">
-                    <span class="param-label">去重控制</span>
-                    <div class="param-input-wrapper">
-                      <el-switch v-model="form.dedup_type3_enabled" size="large" />
-                    </div>
+                </div>
+                <div class="param-item">
+                  <span class="param-label">去重控制</span>
+                  <div class="param-input-wrapper">
+                    <el-switch v-model="form.dedup_type3_enabled" size="large" />
                   </div>
                 </div>
               </div>
             </div>
           </div>
+        </div>
 
-          <el-divider class="section-divider" />
-
-          <!-- Symbol Configuration Section -->
-          <div class="settings-section">
-            <div class="section-header is-between">
-              <div class="header-left">
-                <div class="header-icon-wrapper bg-green">
-                  <el-icon><Setting /></el-icon>
-                </div>
-                <div class="header-text">
-                  <span class="section-title">币种个性化配置</span>
-                  <span class="section-subtitle">为特定币种设置独立的参数，优先级高于全局配置</span>
-                </div>
+        <!-- Symbol Configuration Section -->
+        <div class="settings-section">
+          <div class="section-header is-between">
+            <div class="header-left">
+              <div class="header-icon-wrapper bg-green">
+                <el-icon><Setting /></el-icon>
               </div>
-              <el-button type="primary" plain round @click="showAddSymbolConfig" size="small">
-                <el-icon class="el-icon--left"><Plus /></el-icon>
-                添加配置
-              </el-button>
+              <div class="header-text">
+                <span class="section-title">交易对个性化配置</span>
+                <span class="section-subtitle">为特定交易对设置独立的参数，优先级高于全局配置</span>
+              </div>
             </div>
+            <el-button type="primary" plain round @click="showAddSymbolConfig" size="small">
+              添加
+            </el-button>
+          </div>
 
-            <div class="table-container">
+          <div class="table-container">
               <el-table 
                 :data="symbolConfigs" 
                 v-loading="symbolConfigLoading" 
                 style="width: 100%;" 
                 size="large"
-                :header-cell-style="{ background: 'var(--bg-color-overlay)', color: 'var(--text-color-regular)', fontWeight: '600' }"
+                :header-cell-style="{ background: 'var(--bg-color)', color: 'var(--text-color-primary)', fontWeight: '600' }"
               >
-                <el-table-column prop="symbol" label="币种" width="140">
+                <el-table-column prop="symbol" label="交易对" width="140">
                   <template #default="{ row }">
                     <span class="symbol-text">{{ row.symbol }}</span>
                   </template>
                 </el-table-column>
-                <el-table-column prop="interval" label="K线间隔" width="120">
+                <el-table-column prop="interval" label="K线周期" width="120">
                   <template #default="{ row }">
                     <el-tag effect="light" round>{{ row.interval }}</el-tag>
                   </template>
@@ -185,14 +180,14 @@
                     </span>
                   </template>
                 </el-table-column>
-                <el-table-column prop="middle_kline_cnt" label="最小间隔K线">
+                <el-table-column prop="middle_kline_cnt" label="最小间隔K线数">
                   <template #default="{ row }">
                     <span :class="row.middle_kline_cnt !== null ? 'value-highlight' : 'value-default'">
                       {{ row.middle_kline_cnt !== null ? row.middle_kline_cnt : '全局' }}
                     </span>
                   </template>
                 </el-table-column>
-                <el-table-column prop="fake_kline_cnt" label="假K线数量">
+                <el-table-column prop="fake_kline_cnt" label="假K线容忍数">
                   <template #default="{ row }">
                     <span :class="row.fake_kline_cnt !== null ? 'value-highlight' : 'value-default'">
                       {{ row.fake_kline_cnt !== null ? row.fake_kline_cnt : '全局' }}
@@ -217,18 +212,16 @@
                 </template>
               </el-table>
             </div>
-          </div>
 
-        </el-card>
+        </div>
       </el-form>
     </div>
 
     <div class="settings-footer">
       <div class="footer-content">
-        <el-button @click="fetchConfigs" :disabled="saving">重置更改</el-button>
-        <el-button type="primary" @click="handleSave" :loading="saving" size="large" class="save-btn">
-          <el-icon class="el-icon--left"><Check /></el-icon>
-          保存所有配置
+        <el-button @click="fetchConfigs" :disabled="saving" size="large" class="footer-btn">重置</el-button>
+        <el-button type="primary" @click="handleSave" :loading="saving" size="large" class="footer-btn">
+          保存
         </el-button>
       </div>
     </div>
@@ -328,7 +321,7 @@ const fetchConfigs = async () => {
 const fetchSymbolConfigs = async () => {
   symbolConfigLoading.value = true
   try {
-    const data = await getSymbolConfigs({ limit: 10000 })
+    const data = await getSymbolConfigs({ limit: 1000 })
     symbolConfigs.value = data.items
   } catch (error) {
     logger.error('获取币种配置失败', error, { sampling: 10000 })
@@ -339,7 +332,7 @@ const fetchSymbolConfigs = async () => {
 
 const fetchAllSymbols = async () => {
   try {
-    const data = await getSymbols({ limit: 10000, is_active: true })
+    const data = await getSymbols({ limit: 1000, is_active: true })
     allSymbols.value = data.items.map(s => s.symbol)
   } catch (error) {
     logger.error('获取币种列表失败', error, { sampling: 10000 })
@@ -415,7 +408,7 @@ const handleSave = async () => {
       { key: '3_dedup_enabled', value: String(form.dedup_type3_enabled).toLowerCase() }
     ]
     await batchUpdateConfigs(configs)
-    ElMessage.success('配置保存成功')
+    ElMessage.success('保存成功')
   } catch {
     ElMessage.error('保存配置失败')
   } finally {
@@ -445,22 +438,13 @@ onMounted(() => {
 
 .settings-form {
   width: 100%;
-}
-
-.main-settings-card {
-  border-radius: var(--radius-lg);
-  border: 1px solid var(--border-color-lighter);
-  overflow: hidden;
-  background: #fff;
-  width: 100%;
-}
-
-.main-settings-card :deep(.el-card__body) {
-  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
 }
 
 .settings-section {
-  padding: 24px 32px;
+  padding: 0;
 }
 
 .section-header {
@@ -508,37 +492,30 @@ onMounted(() => {
 }
 
 .params-grid {
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 24px;
 }
 
 .param-group {
-  background: var(--bg-color);
+  background: #fff;
   border-radius: var(--radius-lg);
   padding: 24px;
-  border: 1px solid transparent;
+  border: 1px solid var(--border-color-lighter);
   display: flex;
   flex-direction: column;
   gap: 20px;
-  transition: all 0.3s ease;
-}
-
-.param-group:hover {
-  background: #fff;
-  border-color: var(--el-color-primary-light-8);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.04);
-  transform: translateY(-2px);
+  height: 100%;
 }
 
 .monitor-params-row {
-  display: flex;
-  flex-direction: column;
+  display: grid;
+  grid-template-columns: 1fr;
   gap: 20px;
 }
 
 .param-group.wide-group {
-  /* No special handling needed for vertical layout */
+  grid-column: span 2;
 }
 
 .group-label {
@@ -548,13 +525,33 @@ onMounted(() => {
   font-weight: 600;
   color: var(--text-color-primary);
   font-size: 16px;
-  margin-bottom: 4px;
+  margin-bottom: 8px;
+  padding-bottom: 12px;
+  border-bottom: 1px dashed var(--border-color-light);
 }
 
 .wide-params-container {
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 24px;
+}
+
+@media (max-width: 1200px) {
+  .wide-params-container {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 768px) {
+  .params-grid {
+    grid-template-columns: 1fr;
+  }
+  .param-group.wide-group {
+    grid-column: span 1;
+  }
+  .wide-params-container {
+    grid-template-columns: 1fr;
+  }
 }
 
 .param-item {
@@ -647,9 +644,10 @@ onMounted(() => {
   padding: 0 32px;
 }
 
-.save-btn {
+.footer-btn {
   padding-left: 24px;
   padding-right: 24px;
+  min-width: 140px;
 }
 
 /* Custom Input Styles */
@@ -658,6 +656,15 @@ onMounted(() => {
   box-shadow: 0 0 0 1px var(--border-color-light) inset;
   padding-left: 12px;
   padding-right: 12px;
+  transition: all 0.2s ease;
+}
+
+:deep(.el-input-number .el-input__wrapper:hover) {
+  box-shadow: 0 0 0 1px var(--text-color-placeholder) inset;
+}
+
+:deep(.el-input-number .el-input__wrapper.is-focus) {
+  box-shadow: 0 0 0 1px var(--el-color-primary) inset !important;
 }
 
 :deep(.el-input-number .el-input__wrapper:hover) {

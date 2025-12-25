@@ -1,7 +1,7 @@
 <template>
   <el-dialog
     v-model="visible"
-    title="数据同步进度"
+    title="同步进度"
     width="480px"
     :close-on-click-modal="false"
     :close-on-press-escape="false"

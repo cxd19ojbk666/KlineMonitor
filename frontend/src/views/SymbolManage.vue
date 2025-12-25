@@ -3,7 +3,7 @@
     <!-- 交易对列表 -->
     <div class="page-toolbar">
       <div class="page-toolbar__left">
-        <el-input v-model="searchText" placeholder="搜索交易对..." clearable class="search-input" @keyup.enter="handleSearch" @clear="handleSearch">
+        <el-input v-model="searchText" placeholder="输入交易对名称" clearable class="search-input" @keyup.enter="handleSearch" @clear="handleSearch">
           <template #prefix><el-icon><Search /></el-icon></template>
         </el-input>
         <el-select v-model="filterActive" placeholder="状态筛选" class="filter-select--small" clearable @change="handleSearch" @clear="handleSearch">
@@ -27,10 +27,10 @@
             批量删除
           </el-button>
           <el-button type="primary" @click="showAddDialog = true">
-            添加交易对
+            添加
           </el-button>
           <el-button type="success" @click="bulkAdd.fetchAvailableSymbols()">
-            一键添加所有
+            一键添加
           </el-button>
         </div>
       </div>
@@ -210,7 +210,7 @@ const handleToggle = async (symbol: string) => {
 const handleDelete = (symbol: string) => {
   ElMessageBox.confirm(
     '确定删除该交易对吗? 删除后将清除相关数据。',
-    '删除确认',
+    '确认删除',
     {
       confirmButtonText: '确认删除',
       cancelButtonText: '取消',
@@ -257,7 +257,7 @@ const handleBatchDelete = () => {
   
   ElMessageBox.confirm(
     '确定删除选中的交易对吗？删除后将清除所有相关K线数据。',
-    '批量删除确认',
+    '确认批量删除',
     {
       confirmButtonText: '确认删除',
       cancelButtonText: '取消',

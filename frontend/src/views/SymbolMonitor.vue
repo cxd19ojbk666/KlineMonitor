@@ -5,7 +5,7 @@
         <el-select-v2
           v-model="selectedSymbol"
           :options="symbolOptions"
-          placeholder="选择交易对"
+          placeholder="搜索交易对"
           style="width: 160px"
           @change="fetchData"
           filterable
@@ -66,17 +66,17 @@
             </div>
             <div class="kline-details volume-grid">
               <div class="detail-item">
-                <span class="label">15m Vol</span>
+                <span class="label">15分钟Vol</span>
                 <span class="value">{{ formatVolume(monitorData.metrics.volume_15m) }}</span>
               </div>
               <div class="detail-item">
-                <span class="label">8h Vol</span>
+                <span class="label">8小时Vol</span>
                 <span class="value">{{ formatVolume(monitorData.metrics.volume_8h) }}</span>
               </div>
             </div>
             <div class="volume-progress-section">
               <div class="progress-info">
-                <span class="label">占比</span>
+                <span class="label">Vol占比</span>
                 <span class="value">{{ ((monitorData.metrics.volume_15m / monitorData.metrics.volume_8h) * 100).toFixed(1) }}%</span>
               </div>
               <div class="progress-bar">
@@ -131,7 +131,7 @@
             </div>
             <div class="kline-details volume-grid no-border">
               <div class="detail-item">
-                <span class="label">误差</span>
+                <span class="label">价格误差</span>
                 <span class="value" :class="{ 'text-danger': monitorData.metrics.open_price_triggered }">
                   {{ monitorData.metrics.open_price_error != null ? monitorData.metrics.open_price_error.toFixed(2) + '%' : '-' }}
                 </span>
@@ -213,7 +213,7 @@ const formatVolume = (volume: number): string => {
 
 const loadSymbolOptions = async () => {
   try {
-    const response = await getSymbols({ is_active: true, limit: 10000 })
+    const response = await getSymbols({ is_active: true, limit: 1000 })
     symbolOptions.value = response.items.map(item => ({ label: item.symbol, value: item.symbol }))
     if (symbolOptions.value.length > 0 && !selectedSymbol.value) selectedSymbol.value = symbolOptions.value[0].value
   } catch (error) {

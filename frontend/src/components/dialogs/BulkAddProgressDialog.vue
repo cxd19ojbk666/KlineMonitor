@@ -1,7 +1,7 @@
 <template>
   <el-dialog
     v-model="visible"
-    title="批量添加进度"
+    title="批量新增进度"
     width="520px"
     :close-on-click-modal="false"
     :close-on-press-escape="false"

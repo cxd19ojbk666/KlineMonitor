@@ -50,6 +50,74 @@
   gap: 12px;
 }
 
+/* Unified Message Box Support */
+.el-message-box.unified-dialog {
+  border-radius: var(--dialog-border-radius) !important;
+  box-shadow: var(--dialog-shadow) !important;
+  padding-bottom: 0;
+  border: none;
+  width: 420px;
+  max-width: 90vw;
+}
+
+.el-message-box.unified-dialog .el-message-box__header {
+  padding: var(--dialog-header-padding);
+  padding-bottom: 0;
+}
+
+.el-message-box.unified-dialog .el-message-box__title {
+  font-size: var(--dialog-title-font-size);
+  font-weight: var(--dialog-title-font-weight);
+  color: var(--el-text-color-primary);
+  justify-content: center;
+}
+
+.el-message-box.unified-dialog .el-message-box__headerbtn {
+  top: 20px;
+  right: 20px;
+}
+
+.el-message-box.unified-dialog .el-message-box__content {
+  padding: var(--dialog-padding);
+  color: var(--el-text-color-regular);
+  font-size: 16px;
+  text-align: center;
+}
+
+.el-message-box.unified-dialog .el-message-box__container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.el-message-box.unified-dialog .el-message-box__status {
+  position: static;
+  margin-bottom: 16px;
+  transform: none;
+  font-size: 48px !important;
+}
+
+.el-message-box.unified-dialog .el-message-box__message {
+  padding-left: 0 !important;
+  text-align: center;
+  line-height: 1.6;
+}
+
+.el-message-box.unified-dialog .el-message-box__btns {
+  padding: var(--dialog-footer-padding);
+  display: flex;
+  justify-content: center;
+  gap: 16px;
+  flex-direction: row-reverse; /* Put confirm button on the right usually, but row-reverse might depend on HTML order. Element Plus default is Cancel then Confirm. Flex-direction row-reverse puts Confirm (last) first (left). Let's keep normal but ensure spacing. */
+}
+
+.el-message-box.unified-dialog .el-button {
+  margin-left: 0 !important;
+  min-width: 100px;
+  height: 40px;
+  font-size: 14px;
+}
+
 /* Responsive Handling */
 @media (max-width: 768px) {
   .unified-dialog {
@@ -103,59 +171,9 @@
 .sync-header {
   display: flex;
   align-items: center;
+  justify-content: center;
   margin-bottom: 24px;
-  gap: 16px;
-}
-
-.sync-icon-wrapper {
-  width: 50px;
-  height: 50px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: #f4f4f5;
-  border-radius: 50%;
-  flex-shrink: 0;
-}
-
-.sync-icon-wrapper.is-completed {
-  background: transparent;
-}
-
-/* iOS Spinner */
-.loading-spinner {
-  position: relative;
-  width: 24px;
-  height: 24px;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-
-.spinner-dot {
-  position: absolute;
-  top: 0;
-  left: 11px;
-  width: 2px;
-  height: 6px;
-  background: #409eff;
-  border-radius: 1px;
-  transform-origin: 1px 12px;
-  animation: spinner-fade 0.8s linear infinite;
-}
-
-.spinner-dot:nth-child(1) { transform: rotate(0deg); animation-delay: -0.7s; }
-.spinner-dot:nth-child(2) { transform: rotate(45deg); animation-delay: -0.6s; }
-.spinner-dot:nth-child(3) { transform: rotate(90deg); animation-delay: -0.5s; }
-.spinner-dot:nth-child(4) { transform: rotate(135deg); animation-delay: -0.4s; }
-.spinner-dot:nth-child(5) { transform: rotate(180deg); animation-delay: -0.3s; }
-.spinner-dot:nth-child(6) { transform: rotate(225deg); animation-delay: -0.2s; }
-.spinner-dot:nth-child(7) { transform: rotate(270deg); animation-delay: -0.1s; }
-.spinner-dot:nth-child(8) { transform: rotate(315deg); animation-delay: 0s; }
-
-@keyframes spinner-fade {
-  0% { opacity: 1; }
-  100% { opacity: 0.3; }
+  text-align: center;
 }
 
 .sync-title-info h3 {

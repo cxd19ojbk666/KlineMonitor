@@ -6,7 +6,7 @@
           <div class="card-header">
             <div class="header-left">
               <el-radio-group v-model="logType" @change="handleLogTypeChange">
-                <el-radio-button value="app">全部日志</el-radio-button>
+                <el-radio-button value="app">全部</el-radio-button>
                 <el-radio-button value="info">INFO</el-radio-button>
                 <el-radio-button value="warning">WARNING</el-radio-button>
                 <el-radio-button value="error">ERROR</el-radio-button>
@@ -15,7 +15,7 @@
             <div class="header-right">
               <el-input
                 v-model="searchKeyword"
-                placeholder="搜索日志内容..."
+                placeholder="输入关键词搜索"
                 clearable
                 style="width: 200px;"
                 @keyup.enter="loadLogContent"
@@ -33,7 +33,7 @@
                 controls-position="right"
                 style="width: 120px; margin-left: 12px;"
               />
-              <el-button type="primary" :icon="RefreshRight" @click="loadLogContent" :loading="loading" style="margin-left: 12px;">
+              <el-button type="primary" @click="loadLogContent" :loading="loading" style="margin-left: 12px;">
                 刷新
               </el-button>
             </div>
