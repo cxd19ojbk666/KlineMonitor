@@ -36,6 +36,9 @@ class Settings(BaseSettings):
     # CORS配置
     CORS_ALLOW_ORIGINS: str = "*"
     
+    # Worker 配置
+    ENABLE_SCHEDULER: bool = True  # 是否启用调度器（API服务设为False）
+    
     class Config:
         env_file = ".env"
 

@@ -1,6 +1,7 @@
 version: '3.8'
 
 services:
+  # API 服务 - 只处理 HTTP 请求，不运行调度任务
   backend:
     build: ./backend
     container_name: kline-backend
@@ -10,6 +11,8 @@ services:
       - ./backend/logs:/app/logs
     env_file:
       - ./backend/.env
+    environment:
+      - ENABLE_SCHEDULER=false
     ports:
       - "8000:8000"
     healthcheck:
@@ -17,6 +20,32 @@ services:
       interval: 30s
       timeout: 10s
       retries: 3
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 512M
+
+  # Worker 服务 - 独立运行调度和监控任务
+  worker:
+    build: ./backend
+    container_name: kline-worker
+    restart: always
+    volumes:
+      - ./backend/database.db:/app/database.db
+      - ./backend/logs:/app/logs
+    env_file:
+      - ./backend/.env
+    environment:
+      - ENABLE_SCHEDULER=true
+    command: ["python", "-m", "app.worker"]
+    depends_on:
+      - backend
+    deploy:
+      resources:
+        limits:
+          cpus: '2.0'
+          memory: 1G
 
   frontend:
     build: ./frontend

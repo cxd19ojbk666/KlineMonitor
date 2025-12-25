@@ -20,7 +20,7 @@ async def lifespan(app: FastAPI):
     """
     应用生命周期管理
     
-    启动时：初始化数据库、启动调度器
+    启动时：初始化数据库、根据配置启动调度器
     关闭时：停止调度器
     """
     # 启动时
@@ -28,16 +28,21 @@ async def lifespan(app: FastAPI):
     init_db()
     print("数据库初始化完成")
     
-    print("正在启动调度器...")
-    start_scheduler()
-    print("调度器启动完成")
+    # 根据配置决定是否启动调度器
+    if settings.ENABLE_SCHEDULER:
+        print("正在启动调度器...")
+        start_scheduler()
+        print("调度器启动完成")
+    else:
+        print("调度器已禁用（ENABLE_SCHEDULER=false）")
     
     yield
     
     # 关闭时
-    print("正在停止调度器...")
-    stop_scheduler()
-    print("调度器已停止")
+    if settings.ENABLE_SCHEDULER:
+        print("正在停止调度器...")
+        stop_scheduler()
+        print("调度器已停止")
 
 
 # 创建FastAPI应用
