@@ -24,7 +24,7 @@ router = APIRouter(prefix="/symbols", tags=["币种管理"])
 @router.get("", response_model=SymbolListResponse)
 def get_symbols(
     skip: int = Query(0, ge=0),
-    limit: int = Query(100, ge=1, le=500),
+    limit: int = Query(100, ge=1, le=1000),
     is_active: bool = Query(None),
     symbol: str = Query(None),
     db: Session = Depends(get_db_session)

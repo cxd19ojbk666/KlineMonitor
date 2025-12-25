@@ -303,7 +303,7 @@ async def _get_symbol_monitor_data(db, symbol: str, interval: str, kline_limit: 
 async def get_klines(
     symbol: str,
     interval: str = Query("15m", description="K线周期: 15m, 30m, 1h, 4h, 1d, 3d"),
-    limit: int = Query(100, ge=10, le=500, description="K线数量")
+    limit: int = Query(100, ge=10, le=1000, description="K线数量")
 ):
     """
     获取K线数据（从数据库读取）

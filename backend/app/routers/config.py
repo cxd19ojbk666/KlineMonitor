@@ -61,7 +61,7 @@ def batch_update_configs(batch: ConfigBatchUpdate, db: Session = Depends(get_db_
 @router.get("/symbol-configs", response_model=SymbolConfigListResponse)
 def get_symbol_configs(
     skip: int = Query(0, ge=0),
-    limit: int = Query(100, ge=1, le=500),
+    limit: int = Query(100, ge=1, le=1000),
     symbol: str = Query(None),
     interval: str = Query(None),
     db: Session = Depends(get_db_session)
