@@ -7,18 +7,9 @@
             <div class="header-left">
               <el-radio-group v-model="logType" @change="handleLogTypeChange">
                 <el-radio-button value="app">全部日志</el-radio-button>
-                <el-radio-button value="info">
-                  <el-icon class="log-icon info"><InfoFilled /></el-icon>
-                  INFO
-                </el-radio-button>
-                <el-radio-button value="warning">
-                  <el-icon class="log-icon warning"><WarningFilled /></el-icon>
-                  WARNING
-                </el-radio-button>
-                <el-radio-button value="error">
-                  <el-icon class="log-icon error"><CircleCloseFilled /></el-icon>
-                  ERROR
-                </el-radio-button>
+                <el-radio-button value="info">INFO</el-radio-button>
+                <el-radio-button value="warning">WARNING</el-radio-button>
+                <el-radio-button value="error">ERROR</el-radio-button>
               </el-radio-group>
             </div>
             <div class="header-right">
@@ -91,7 +82,7 @@
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
-import { Search, RefreshRight, Document, List, Loading, InfoFilled, WarningFilled, CircleCloseFilled } from '@element-plus/icons-vue'
+import { Search, RefreshRight, Document, List, Loading } from '@element-plus/icons-vue'
 import { getLogContent, type LogContent } from '@/api'
 import { ElMessage } from 'element-plus'
 
@@ -290,23 +281,6 @@ onMounted(() => {
 
 .log-debug {
   color: #888;
-}
-
-.log-icon {
-  margin-right: 4px;
-  vertical-align: middle;
-}
-
-.log-icon.info {
-  color: var(--el-color-primary);
-}
-
-.log-icon.warning {
-  color: var(--el-color-warning);
-}
-
-.log-icon.error {
-  color: var(--el-color-danger);
 }
 
 :deep(.search-highlight) {

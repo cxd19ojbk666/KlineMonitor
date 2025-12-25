@@ -4,7 +4,6 @@
 提供统一的日志管理功能
 
 功能：
-- 结构化JSON日志（便于ELK/Loki解析）
 - 异步写入（不阻塞业务逻辑）
 - 日志分级（DEBUG/INFO/WARNING/ERROR）
 - 日志轮转和归档
@@ -160,7 +159,6 @@ def setup_logger(
     name: str = "kline_monitor",
     log_dir: str = "logs",
     level: int = logging.INFO,
-    json_format: bool = True,
     async_write: bool = True,
     max_bytes: int = 10 * 1024 * 1024,  # 10MB
     backup_count: int = 5
@@ -172,7 +170,6 @@ def setup_logger(
         name: 日志器名称
         log_dir: 日志目录
         level: 日志级别
-        json_format: 是否使用JSON格式（文件）
         async_write: 是否异步写入
         max_bytes: 单个日志文件最大字节数
         backup_count: 保留的备份文件数量
@@ -196,8 +193,11 @@ def setup_logger(
     context_filter = ContextFilter()
     logger.addFilter(context_filter)
     
-    # 格式化器
-    json_formatter = JsonFormatter()
+    # 格式化器 - 文件使用原始文本格式，控制台使用彩色格式
+    file_formatter = logging.Formatter(
+        '%(asctime)s - %(name)s - %(levelname)s - [%(filename)s:%(lineno)d] - %(message)s',
+        datefmt='%Y-%m-%d %H:%M:%S'
+    )
     console_formatter = ConsoleFormatter()
     
     # 文件处理器配置: (文件名, 处理器级别, 级别过滤器)
@@ -218,7 +218,7 @@ def setup_logger(
             encoding='utf-8'
         )
         handler.setLevel(handler_level)
-        handler.setFormatter(json_formatter if json_format else console_formatter)
+        handler.setFormatter(file_formatter)
         if level_filter is not None:
             handler.addFilter(LevelFilter(level_filter))
         file_handlers.append(handler)
