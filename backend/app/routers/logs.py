@@ -41,8 +41,14 @@ def list_log_files():
         return []
     
     files = []
-    # 只返回主日志文件 app.log 和 error.log
-    for log_name, log_type in [("app.log", "app"), ("error.log", "error")]:
+    # 返回分级日志文件
+    log_files = [
+        ("app.log", "app"),
+        ("info.log", "info"),
+        ("warning.log", "warning"),
+        ("error.log", "error"),
+    ]
+    for log_name, log_type in log_files:
         file_path = LOG_DIR / log_name
         if file_path.exists():
             stat = file_path.stat()
@@ -116,7 +122,7 @@ def get_log_content(
 
 @router.get("/today")
 def get_today_logs(
-    log_type: str = Query(default="app", regex="^(app|error)$"),
+    log_type: str = Query(default="app", regex="^(app|info|warning|error)$"),
     tail: int = Query(default=200, ge=1, le=5000),
     search: Optional[str] = Query(default=None)
 ):
@@ -124,7 +130,7 @@ def get_today_logs(
     获取日志
     
     Args:
-        log_type: 日志类型 (app/error)
+        log_type: 日志类型 (app/info/warning/error)
         tail: 返回最后N行
         search: 搜索关键词
     """

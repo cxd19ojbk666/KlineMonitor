@@ -136,8 +136,9 @@ class MonitorService:
                     "volume_ratio": volume_ratio,
                     "volume_threshold": percent
                 }
-                await self.alert.reminder(symbol, 1, data)
-                return True
+                result = await self.alert.reminder(symbol, 1, data)
+                # 只有实际发送了提醒才返回True，被时间间隔限制的不计入统计
+                return result is not None
             
             return False
             
@@ -169,8 +170,9 @@ class MonitorService:
                     "rise_start_price": price_info["start_price"],
                     "rise_end_price": price_info["end_price"]
                 }
-                await self.alert.reminder(symbol, 2, data)
-                return True
+                result = await self.alert.reminder(symbol, 2, data)
+                # 只有实际发送了提醒才返回True，被时间间隔限制的不计入统计
+                return result is not None
             
             return False
             
