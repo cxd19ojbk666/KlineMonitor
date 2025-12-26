@@ -10,9 +10,6 @@
     :show-close="false"
   >
     <div class="add-dialog-content">
-      <div class="dialog-icon-wrapper">
-        <el-icon :size="40" color="var(--el-color-primary)"><Coin /></el-icon>
-      </div>
       <p class="dialog-instruction">请输入 Binance 交易对</p>
       <el-form :model="form" @submit.prevent="handleSubmit" size="large" style="width: 100%">
         <el-form-item style="margin-bottom: 16px">
@@ -42,7 +39,7 @@
 
 <script setup lang="ts">
 import { ref, reactive, watch } from 'vue'
-import { Coin, Search } from '@element-plus/icons-vue'
+import { Search } from '@element-plus/icons-vue'
 
 const visible = defineModel<boolean>({ default: false })
 

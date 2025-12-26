@@ -12,12 +12,6 @@
   >
     <div class="sync-content">
       <div class="sync-header">
-        <div class="sync-icon-wrapper" :class="{ 'is-completed': complete }">
-          <div class="loading-spinner" v-if="!complete">
-            <div class="spinner-dot" v-for="i in 8" :key="i"></div>
-          </div>
-          <el-icon v-else size="28" color="#67c23a"><CircleCheckFilled /></el-icon>
-        </div>
         <div class="sync-title-info">
           <h3>{{ complete ? '同步完成' : '正在同步数据' }}</h3>
           <p>{{ symbol }}</p>
@@ -64,7 +58,7 @@
 </template>
 
 <script setup lang="ts">
-import { CircleCheckFilled, Check, Loading, Close, MoreFilled } from '@element-plus/icons-vue'
+import { Check, Loading, Close, MoreFilled } from '@element-plus/icons-vue'
 import type { SyncDetail } from '@/composables/useSymbolSync'
 
 const visible = defineModel<boolean>({ default: false })

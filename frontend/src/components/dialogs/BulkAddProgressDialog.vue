@@ -12,12 +12,6 @@
   >
     <div class="sync-content">
       <div class="sync-header">
-        <div class="sync-icon-wrapper" :class="{ 'is-completed': complete }">
-          <div class="loading-spinner" v-if="!complete">
-            <div class="spinner-dot" v-for="i in 8" :key="i"></div>
-          </div>
-          <el-icon v-else size="28" color="#67c23a"><CircleCheckFilled /></el-icon>
-        </div>
         <div class="sync-title-info">
           <h3>{{ complete ? '添加完成' : '正在添加' }}</h3>
           <p v-if="!complete && phase === 'syncing'">并发同步中，已完成 {{ current }} / {{ total }} 个任务</p>
@@ -85,7 +79,7 @@
 </template>
 
 <script setup lang="ts">
-import { CircleCheckFilled, Check, Loading, Warning, Close } from '@element-plus/icons-vue'
+import { Check, Loading, Warning, Close } from '@element-plus/icons-vue'
 import type { BulkAddLog } from '@/composables/useBulkAdd'
 
 const visible = defineModel<boolean>({ default: false })

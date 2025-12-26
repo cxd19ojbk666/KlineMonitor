@@ -42,11 +42,9 @@
 
         <div class="log-info" v-if="logContent">
           <span class="info-item">
-            <el-icon><Document /></el-icon>
             {{ logContent.file_name }}
           </span>
           <span class="info-item">
-            <el-icon><List /></el-icon>
             共 {{ logContent.total_lines }} 行
           </span>
           <span class="info-item">
@@ -82,7 +80,7 @@
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
-import { Search, RefreshRight, Document, List, Loading } from '@element-plus/icons-vue'
+import { Search, Loading } from '@element-plus/icons-vue'
 import { getLogContent, type LogContent } from '@/api'
 import { ElMessage } from 'element-plus'
 

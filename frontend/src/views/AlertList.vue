@@ -115,7 +115,7 @@ const handleDelete = (id: number) => {
     {
       confirmButtonText: '删除',
       cancelButtonText: '取消',
-      type: 'warning',
+      showClose: false
     }
   )
     .then(async () => {
@@ -137,7 +137,7 @@ const handleClearAll = () => {
     {
       confirmButtonText: '确认清空',
       cancelButtonText: '取消',
-      type: 'danger',
+      showClose: false
     }
   )
     .then(async () => {

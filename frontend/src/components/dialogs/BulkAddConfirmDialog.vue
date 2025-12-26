@@ -10,9 +10,6 @@
     :show-close="false"
   >
     <div class="add-dialog-content">
-      <div class="dialog-icon-wrapper">
-        <el-icon :size="40" color="var(--el-color-primary)"><FolderAdd /></el-icon>
-      </div>
       <p class="dialog-instruction">即将添加所有 Binance USDT 永续合约交易对</p>
       
       <div class="bulk-add-stats-wrapper animate-up" v-if="availableInfo">
@@ -59,7 +56,6 @@
 </template>
 
 <script setup lang="ts">
-import { FolderAdd } from '@element-plus/icons-vue'
 import type { AvailableSymbolsResponse } from '@/types'
 
 const visible = defineModel<boolean>({ default: false })

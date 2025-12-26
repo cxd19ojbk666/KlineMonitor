@@ -50,7 +50,6 @@
         <el-table-column prop="is_active" label="状态">
           <template #default="{ row }">
             <el-tag :type="row.is_active ? 'success' : 'info'" effect="plain" round>
-              <span class="dot" :class="{ active: row.is_active }"></span>
               {{ row.is_active ? '监控中' : '已停用' }}
             </el-tag>
           </template>
@@ -214,7 +213,7 @@ const handleDelete = (symbol: string) => {
     {
       confirmButtonText: '确认删除',
       cancelButtonText: '取消',
-      type: 'warning',
+      showClose: false
     }
   )
     .then(async () => {
@@ -261,7 +260,7 @@ const handleBatchDelete = () => {
     {
       confirmButtonText: '确认删除',
       cancelButtonText: '取消',
-      type: 'warning',
+      showClose: false
     }
   )
     .then(async () => {
@@ -373,18 +372,5 @@ onMounted(() => fetchData())
 .symbol-text { 
   font-weight: var(--font-weight-semibold); 
   color: var(--text-color-primary); 
-}
-
-.dot { 
-  display: inline-block; 
-  width: 6px; 
-  height: 6px; 
-  border-radius: 50%; 
-  background-color: var(--text-color-secondary); 
-  margin-right: 4px; 
-}
-
-.dot.active { 
-  background-color: var(--el-color-success); 
 }
 </style>

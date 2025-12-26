@@ -19,7 +19,6 @@
             <!-- Volume Group -->
             <div class="param-group">
               <div class="group-label">
-                <el-icon><DataLine /></el-icon>
                 <span>成交量监控</span>
               </div>
               <div class="monitor-params-row">
@@ -53,7 +52,6 @@
             <!-- Rise Group -->
             <div class="param-group">
               <div class="group-label">
-                <el-icon><TrendCharts /></el-icon>
                 <span>涨幅监控</span>
               </div>
               <div class="monitor-params-row">
@@ -87,7 +85,6 @@
             <!-- Price Match Group -->
             <div class="param-group wide-group">
               <div class="group-label">
-                <el-icon><Connection /></el-icon>
                 <span>开盘价匹配规则</span>
               </div>
               <div class="wide-params-container">
@@ -384,7 +381,7 @@ const removeSymbolConfig = async (config: SymbolConfig) => {
     await ElMessageBox.confirm(
       `确定删除 ${config.symbol} (${config.interval}) 的个性化配置吗？删除后将使用全局配置。`,
       '确认删除',
-      { type: 'warning' }
+      { showClose: false }
     )
     await deleteSymbolConfig(config.symbol, config.interval)
     ElMessage.success('删除成功')

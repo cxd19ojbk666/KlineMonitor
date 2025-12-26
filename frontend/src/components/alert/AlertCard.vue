@@ -24,15 +24,15 @@
         <template v-if="alert.alert_type === 1">
           <div class="data-grid">
             <div class="data-item">
-              <span class="label">15分钟Vol</span>
+              <span class="label">15m Vol</span>
               <span class="value">{{ formatVolume(data.volume_15m) }}</span>
             </div>
             <div class="data-item">
-              <span class="label">8小时Vol</span>
+              <span class="label">8h Vol</span>
               <span class="value">{{ formatVolume(data.volume_8h) }}</span>
             </div>
             <div class="data-item">
-              <span class="label">Vol占比</span>
+              <span class="label">Vol 占比</span>
               <span class="value highlight">{{ data.volume_ratio?.toFixed(1) }}%</span>
             </div>
           </div>

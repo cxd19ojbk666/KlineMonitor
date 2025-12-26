@@ -102,12 +102,12 @@ const emit = defineEmits<{
 }>()
 
 const intervalOptions = [
-  { label: '15分钟', value: '15m' },
-  { label: '30分钟', value: '30m' },
-  { label: '1小时', value: '1h' },
-  { label: '4小时', value: '4h' },
-  { label: '1天', value: '1d' },
-  { label: '3天', value: '3d' }
+  { label: '15m', value: '15m' },
+  { label: '30m', value: '30m' },
+  { label: '1H', value: '1h' },
+  { label: '4H', value: '4h' },
+  { label: '1D', value: '1d' },
+  { label: '3D', value: '3d' }
 ]
 
 const form = reactive({

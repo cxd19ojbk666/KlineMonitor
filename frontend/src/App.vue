@@ -9,7 +9,6 @@
         </div>
         <div class="header-section section-right">
           <div class="monitor-status" :class="{ 'is-active': schedulerStatus.is_running }">
-            <span class="status-point"></span>
             {{ schedulerStatus.is_running ? '监控运行中' : '监控已暂停' }}
           </div>
           <el-button
@@ -170,18 +169,6 @@ onUnmounted(() => {
 }
 
 .monitor-status.is-active { background: rgba(103, 194, 58, 0.1); color: var(--el-color-success); }
-
-.status-point {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background-color: var(--text-color-secondary);
-}
-
-.monitor-status.is-active .status-point {
-  background-color: var(--el-color-success);
-  box-shadow: 0 0 0 2px rgba(103, 194, 58, 0.2);
-}
 
 .app-content {
   padding: var(--spacing-lg) var(--spacing-xl);

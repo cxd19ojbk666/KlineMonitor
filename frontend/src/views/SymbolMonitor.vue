@@ -12,12 +12,12 @@
         />
         <div class="page-toolbar__divider"></div>
         <el-radio-group v-model="interval" @change="fetchData" size="default">
-          <el-radio-button value="15m">15分</el-radio-button>
-          <el-radio-button value="30m">30分</el-radio-button>
-          <el-radio-button value="1h">1时</el-radio-button>
-          <el-radio-button value="4h">4时</el-radio-button>
-          <el-radio-button value="1d">1天</el-radio-button>
-          <el-radio-button value="3d">3天</el-radio-button>
+          <el-radio-button value="15m">15m</el-radio-button>
+          <el-radio-button value="30m">30m</el-radio-button>
+          <el-radio-button value="1h">1H</el-radio-button>
+          <el-radio-button value="4h">4H</el-radio-button>
+          <el-radio-button value="1d">1D</el-radio-button>
+          <el-radio-button value="3d">3D</el-radio-button>
         </el-radio-group>
 
       </div>
@@ -66,17 +66,17 @@
             </div>
             <div class="kline-details volume-grid">
               <div class="detail-item">
-                <span class="label">15分钟Vol</span>
+                <span class="label">15m Vol</span>
                 <span class="value">{{ formatVolume(monitorData.metrics.volume_15m) }}</span>
               </div>
               <div class="detail-item">
-                <span class="label">8小时Vol</span>
+                <span class="label">8h Vol</span>
                 <span class="value">{{ formatVolume(monitorData.metrics.volume_8h) }}</span>
               </div>
             </div>
             <div class="volume-progress-section">
               <div class="progress-info">
-                <span class="label">Vol占比</span>
+                <span class="label">Vol 占比</span>
                 <span class="value">{{ ((monitorData.metrics.volume_15m / monitorData.metrics.volume_8h) * 100).toFixed(1) }}%</span>
               </div>
               <div class="progress-bar">
