@@ -6,15 +6,16 @@
 from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
-from sqlalchemy.pool import StaticPool
 
 from .config import settings
 
-# 创建数据库引擎
+# 创建数据库引擎（优化连接池配置）
 engine = create_engine(
     settings.DATABASE_URL,
     connect_args={"check_same_thread": False}, 
-    poolclass=StaticPool,   # 使用静态池，单连接复用
+    pool_size=20,           # 连接池大小
+    max_overflow=30,        # 最大溢出连接数
+    pool_pre_ping=True,     # 连接健康检查
 )
 
 # 创建会话工厂

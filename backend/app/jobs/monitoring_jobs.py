@@ -7,9 +7,17 @@
 - sync_klines_task: 统一K线数据同步任务（每分钟执行）
 - cleanup_klines_task: 清理过期K线数据（每天执行）
 - run_monitor_task: 主监控任务
+
+性能优化：
+- 批量预加载所有交易对的个性化配置
+- 批量查询所有交易对的阳线K线数据
+- 内存中按交易对和周期分组
+- 提升并发度到200
 """
 import asyncio
-from typing import List
+from collections import defaultdict
+from datetime import timedelta
+from typing import List, Dict
 
 from ..core.database import SessionLocal
 from ..core.events import event_broadcaster
@@ -17,15 +25,19 @@ from ..core.scheduler import is_scheduler_running
 from ..core.stats import sync_stats_collector, monitor_stats_collector
 from ..core.logger import logger
 from ..core.timezone import now_beijing
+from ..core.config import settings
 from ..models.symbol import Symbol
+from ..models.kline import PriceKline
+from ..models.config import SymbolConfig
 from ..services.binance_client import binance_client
 from ..services.monitor_service import monitor_service
+from ..services.config_service import config_service
 
 # 并发控制常量
 SYNC_CONCURRENCY = 600  # K线同步最大并发数（已初始化的增量同步）
 INITIAL_SYNC_CONCURRENCY = 20  # 初始同步最大并发数（控制API请求量）
 INITIAL_SYNC_BATCH_SIZE = 5  # 每分钟最多初始化的新交易对数量
-MONITOR_CONCURRENCY = 100  # 监控任务最大并发数（提升到100，因为主要是数据库查询）
+MONITOR_CONCURRENCY = 200  # 监控任务最大并发数（提升到200）
 
 
 async def get_active_symbols() -> List[str]:
@@ -286,7 +298,7 @@ async def cleanup_klines_task():
 
 async def run_single_monitor(symbol: str, semaphore: asyncio.Semaphore) -> tuple:
     """
-    执行单个币种的监控检查（带信号量控制）
+    执行单个币种的监控检查（带信号量控制）- 旧版本，保留兼容
     
     Args:
         symbol: 交易对
@@ -303,11 +315,102 @@ async def run_single_monitor(symbol: str, semaphore: asyncio.Semaphore) -> tuple
             return (symbol, e)
 
 
+async def run_single_monitor_optimized(
+    symbol: str, 
+    semaphore: asyncio.Semaphore,
+    global_configs: Dict,
+    config_cache: Dict,
+    klines_by_symbol: Dict
+) -> tuple:
+    """
+    执行单个币种的监控检查（优化版 - 使用预加载数据）
+    
+    Args:
+        symbol: 交易对
+        semaphore: 并发控制信号量
+        global_configs: 预加载的全局配置
+        config_cache: 预加载的个性化配置缓存
+        klines_by_symbol: 预加载的K线数据 {symbol: {interval: [klines]}}
+    
+    Returns:
+        (symbol, result) 元组
+    """
+    async with semaphore:
+        try:
+            klines_by_interval = klines_by_symbol.get(symbol, {})
+            result = await monitor_service.run_all_checks_optimized(
+                symbol, global_configs, config_cache, klines_by_interval
+            )
+            return (symbol, result)
+        except Exception as e:
+            return (symbol, e)
+
+
+def preload_all_data(symbols: List[str]) -> tuple:
+    """
+    批量预加载所有监控所需数据
+    
+    Args:
+        symbols: 交易对列表
+    
+    Returns:
+        (global_configs, config_cache, klines_by_symbol)
+    """
+    db = SessionLocal()
+    try:
+        # 1. 预加载全局配置
+        global_configs = {
+            "volume_percent": config_service.get_config_float(db, "1_volume_percent", settings.DEFAULT_1_VOLUME_PERCENT),
+            "rise_percent": config_service.get_config_float(db, "2_rise_percent", settings.DEFAULT_2_RISE_PERCENT),
+            "price_error": config_service.get_config_float(db, "3_price_error", settings.DEFAULT_3_PRICE_ERROR),
+            "middle_kline_cnt": int(config_service.get_config_float(db, "3_middle_kline_cnt", settings.DEFAULT_3_MIDDLE_KLINE_CNT)),
+            "fake_kline_cnt": int(config_service.get_config_float(db, "3_fake_kline_cnt", settings.DEFAULT_3_FAKE_KLINE_CNT)),
+        }
+        
+        # 2. 批量预加载所有交易对的个性化配置
+        all_symbol_configs = db.query(SymbolConfig).filter(
+            SymbolConfig.symbol.in_(symbols)
+        ).all()
+        config_cache = {(c.symbol, c.interval): c for c in all_symbol_configs}
+        
+        # 3. 批量查询所有交易对的阳线K线数据（用于开盘价匹配）
+        now = now_beijing()
+        one_month_ago = now - timedelta(days=settings.MAX_LOOKBACK_DAYS)
+        timeframes = ['15m', '30m', '1h', '4h', '1d', '3d']
+        
+        all_bullish_klines = db.query(PriceKline).filter(
+            PriceKline.symbol.in_(symbols),
+            PriceKline.interval.in_(timeframes),
+            PriceKline.close > PriceKline.open,
+            PriceKline.open_time >= one_month_ago,
+            PriceKline.close_time < now
+        ).order_by(PriceKline.symbol, PriceKline.interval, PriceKline.open_time.desc()).all()
+        
+        # 按 symbol -> interval -> [klines] 分组
+        klines_by_symbol = defaultdict(lambda: defaultdict(list))
+        for k in all_bullish_klines:
+            klines_by_symbol[k.symbol][k.interval].append(k)
+        
+        logger.info(
+            f"[监控预加载] 配置: {len(all_symbol_configs)}条 | "
+            f"K线: {len(all_bullish_klines)}条"
+        )
+        
+        return global_configs, config_cache, dict(klines_by_symbol)
+    finally:
+        db.close()
+
+
 async def run_monitor_task(symbols: List[str] = None):
     """
-    主监控任务
+    主监控任务（优化版）
     
     在K线同步成功后触发，遍历指定的币种执行监控检查
+    
+    优化：
+    - 批量预加载所有配置和K线数据
+    - 减少数据库查询次数
+    - 提升并发度
     
     Args:
         symbols: 要监控的交易对列表，默认获取所有启用的币种
@@ -328,13 +431,21 @@ async def run_monitor_task(symbols: List[str] = None):
         # 启动监控统计收集
         monitor_stats_collector.start_batch()
         
+        # 批量预加载所有数据（一次性查询）
+        global_configs, config_cache, klines_by_symbol = preload_all_data(symbols)
+        
         # 使用信号量控制并发度
         semaphore = asyncio.Semaphore(MONITOR_CONCURRENCY)
         
-        # 创建所有监控任务
-        tasks = [run_single_monitor(symbol, semaphore) for symbol in symbols]
+        # 创建所有监控任务（使用优化版本）
+        tasks = [
+            run_single_monitor_optimized(
+                symbol, semaphore, global_configs, config_cache, klines_by_symbol
+            ) 
+            for symbol in symbols
+        ]
         
-        # 并发执行所有任务（不输出详细日志）
+        # 并发执行所有任务
         await asyncio.gather(*tasks, return_exceptions=True)
         
         # 完成统计并输出汇总
