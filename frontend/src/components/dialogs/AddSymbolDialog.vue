@@ -13,27 +13,16 @@
       <p class="dialog-instruction">请输入 Binance 交易对</p>
       <el-form :model="form" @submit.prevent="handleSubmit" size="large" style="width: 100%">
         <el-form-item style="margin-bottom: 16px">
-          <el-autocomplete
+          <el-input
             v-model="form.symbol"
-            :fetch-suggestions="querySymbols"
             placeholder="例如：BTCUSDT"
             @keyup.enter="handleSubmit"
-            @select="handleSelect"
             class="symbol-input"
-            :trigger-on-focus="false"
-            highlight-first-item
-            style="width: 100%"
           >
             <template #prefix>
               <el-icon><Search /></el-icon>
             </template>
-            <template #default="{ item }">
-              <div class="symbol-suggestion-item">
-                <span class="symbol-name">{{ item.value }}</span>
-                <el-tag v-if="item.exists" type="info" size="small">已添加</el-tag>
-              </div>
-            </template>
-          </el-autocomplete>
+          </el-input>
         </el-form-item>
       </el-form>
     </div>
@@ -49,9 +38,8 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, watch, onMounted } from 'vue'
+import { ref, reactive, watch } from 'vue'
 import { Search } from '@element-plus/icons-vue'
-import { getAvailableSymbols, getSymbols } from '@/api'
 
 const visible = defineModel<boolean>({ default: false })
 
@@ -65,52 +53,10 @@ const emit = defineEmits<{
 }>()
 
 const form = reactive({ symbol: '' })
-const availableSymbols = ref<string[]>([])
-const existingSymbols = ref<Set<string>>(new Set())
-
-// 加载可用的交易对列表
-const loadAvailableSymbols = async () => {
-  try {
-    const [available, existing] = await Promise.all([
-      getAvailableSymbols(),
-      getSymbols({ limit: 1000 })
-    ])
-    availableSymbols.value = available.symbols
-    existingSymbols.value = new Set(existing.items.map(s => s.symbol))
-  } catch (error) {
-    console.error('加载交易对列表失败:', error)
-  }
-}
-
-// 自动补全查询
-const querySymbols = (queryString: string, cb: (suggestions: any[]) => void) => {
-  if (!queryString) {
-    cb([])
-    return
-  }
-  
-  const query = queryString.toUpperCase()
-  const results = availableSymbols.value
-    .filter(s => s.includes(query))
-    .slice(0, 20)
-    .map(s => ({
-      value: s,
-      exists: existingSymbols.value.has(s)
-    }))
-  
-  cb(results)
-}
-
-const handleSelect = (item: { value: string }) => {
-  form.symbol = item.value
-}
 
 watch(visible, (val) => {
   if (val) {
     form.symbol = ''
-    if (availableSymbols.value.length === 0) {
-      loadAvailableSymbols()
-    }
   }
 })
 
@@ -124,10 +70,6 @@ const handleCancel = () => {
   visible.value = false
   emit('cancel')
 }
-
-onMounted(() => {
-  loadAvailableSymbols()
-})
 </script>
 
 <style>
@@ -154,16 +96,4 @@ onMounted(() => {
   letter-spacing: 1px;
 }
 
-.symbol-suggestion-item {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  width: 100%;
-  padding: 4px 0;
-}
-
-.symbol-name {
-  font-weight: 500;
-  font-size: 14px;
-}
 </style>

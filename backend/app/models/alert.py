@@ -3,10 +3,10 @@
 ===============
 包含提醒记录和去重记录的数据库表定义
 """
+from datetime import datetime
 from sqlalchemy import Column, DateTime, Integer, String, JSON, Index
 
 from ..core.database import Base
-from ..core.timezone import now_beijing
 
 
 class Alert(Base):

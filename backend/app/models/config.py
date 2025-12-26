@@ -3,10 +3,10 @@
 ===============
 包含全局配置和币种个性化配置的数据库表定义
 """
+from datetime import datetime
 from sqlalchemy import Column, DateTime, Float, Integer, String, Index
 
 from ..core.database import Base
-from ..core.timezone import now_beijing
 
 
 class Config(Base):

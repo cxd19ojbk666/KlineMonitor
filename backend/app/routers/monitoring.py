@@ -3,14 +3,13 @@
 ===========
 提供实时监控数据和K线数据查询接口
 """
-from datetime import timedelta
+from datetime import datetime, timedelta
 from typing import Optional
 
 from fastapi import APIRouter, Query
 
 from ..core.config import settings
 from ..core.database import SessionLocal
-from ..core.timezone import now_beijing
 from ..models.kline import PriceKline
 from ..models.symbol import Symbol
 from ..schemas.monitoring import KlineData, MonitorMetrics, SymbolMonitorData, SymbolMonitorListResponse
@@ -115,7 +114,7 @@ async def _get_open_price_match_result(
     }
     
     try:
-        now = now_beijing()
+        now = datetime.utcnow()
         one_month_ago = now - timedelta(days=settings.MAX_LOOKBACK_DAYS)
         
         bullish_klines = db.query(PriceKline).filter(
@@ -211,7 +210,7 @@ async def _get_symbol_monitor_data(db, symbol: str, interval: str, kline_limit: 
     current_price = klines_db[-1].close if klines_db else 0.0
     
     # 从数据库获取1分钟K线计算成交量
-    now = now_beijing()
+    now = datetime.utcnow()
     klines_1m = db.query(PriceKline).filter(
         PriceKline.symbol == symbol,
         PriceKline.interval == "1m",

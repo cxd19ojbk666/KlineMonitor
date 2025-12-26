@@ -82,7 +82,7 @@ def mark_symbol_synced(symbol: str):
         db.close()
 
 
-def get_intervals_to_sync(trigger_time = None):
+def get_intervals_to_sync(trigger_time: datetime = None) -> List[str]:
     """
     智能获取需要同步的K线周期
     
@@ -94,13 +94,13 @@ def get_intervals_to_sync(trigger_time = None):
     - 3d：+5分（05分）
     
     Args:
-        trigger_time: 触发时间，默认为当前北京时间
+        trigger_time: 触发时间，默认为当前时间
     
     Returns:
         需要同步的周期列表
     """
     if trigger_time is None:
-        trigger_time = now_beijing()
+        trigger_time = datetime.now()
     
     minute = trigger_time.minute
     hour = trigger_time.hour
@@ -188,7 +188,7 @@ async def sync_klines_task():
     if not is_scheduler_running():
         return
     
-    trigger_time = now_beijing()
+    trigger_time = datetime.now()
     
     try:
         # 区分已初始化和未初始化的交易对

@@ -303,10 +303,9 @@ onMounted(() => fetchData())
 }
 
 .page-toolbar { 
-  flex-shrink: 0;
   display: flex; 
   justify-content: space-between; 
-  align-items: center; 
+  align-items: flex-start; 
   flex-wrap: wrap; 
   gap: var(--spacing-md); 
   margin-bottom: var(--spacing-lg);
