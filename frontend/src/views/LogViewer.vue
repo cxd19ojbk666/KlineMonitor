@@ -1,79 +1,64 @@
 <template>
   <div class="page-wrapper">
+    <div class="page-toolbar">
+      <div class="page-toolbar__left">
+        <el-input
+          v-model="searchKeyword"
+          placeholder="输入关键词搜索"
+          clearable
+          style="width: 200px;"
+          @keyup.enter="loadLogContent"
+          @clear="loadLogContent"
+        >
+          <template #prefix>
+            <el-icon><Search /></el-icon>
+          </template>
+        </el-input>
+        <el-radio-group v-model="logType" @change="handleLogTypeChange">
+          <el-radio-button value="app">全部</el-radio-button>
+          <el-radio-button value="info">INFO</el-radio-button>
+          <el-radio-button value="warning">WARNING</el-radio-button>
+          <el-radio-button value="error">ERROR</el-radio-button>
+        </el-radio-group>
+        <el-select v-model="tailLines" style="width: 120px;">
+          <el-option :value="100" label="100 行" />
+          <el-option :value="500" label="500 行" />
+          <el-option :value="1000" label="1000 行" />
+          <el-option :value="2000" label="2000 行" />
+          <el-option :value="3000" label="3000 行" />
+          <el-option :value="5000" label="5000 行" />
+        </el-select>
+      </div>
+      <div class="page-toolbar__right">
+        <el-button type="primary" @click="loadLogContent" :loading="loading">
+          刷新
+        </el-button>
+      </div>
+    </div>
+
     <div class="page-content">
-      <el-card class="log-card" shadow="never">
-        <template #header>
-          <div class="card-header">
-            <div class="header-left">
-              <el-radio-group v-model="logType" @change="handleLogTypeChange">
-                <el-radio-button value="app">全部</el-radio-button>
-                <el-radio-button value="info">INFO</el-radio-button>
-                <el-radio-button value="warning">WARNING</el-radio-button>
-                <el-radio-button value="error">ERROR</el-radio-button>
-              </el-radio-group>
-            </div>
-            <div class="header-right">
-              <el-input
-                v-model="searchKeyword"
-                placeholder="输入关键词搜索"
-                clearable
-                style="width: 200px;"
-                @keyup.enter="loadLogContent"
-                @clear="loadLogContent"
-              >
-                <template #prefix>
-                  <el-icon><Search /></el-icon>
-                </template>
-              </el-input>
-              <el-input-number
-                v-model="tailLines"
-                :min="100"
-                :max="5000"
-                :step="100"
-                controls-position="right"
-                style="width: 120px; margin-left: 12px;"
-              />
-              <el-button type="primary" @click="loadLogContent" :loading="loading" style="margin-left: 12px;">
-                刷新
-              </el-button>
-            </div>
-          </div>
-        </template>
 
-        <div class="log-info" v-if="logContent">
-          <span class="info-item">
-            {{ logContent.file_name }}
-          </span>
-          <span class="info-item">
-            共 {{ logContent.total_lines }} 行
-          </span>
-          <span class="info-item">
-            显示最后 {{ logContent.lines.length }} 行
-          </span>
-          <el-tag v-if="logContent.has_more" type="warning" size="small">部分显示</el-tag>
+
+      <div class="log-container" ref="logContainerRef">
+        <div v-if="loading" class="log-loading">
+          <el-icon class="is-loading"><Loading /></el-icon>
+          <span>加载中...</span>
         </div>
-
-        <div class="log-container" ref="logContainerRef">
-          <div v-if="loading" class="log-loading">
-            <el-icon class="is-loading"><Loading /></el-icon>
-            <span>加载中...</span>
-          </div>
-          <div v-else-if="!logContent || logContent.lines.length === 0" class="log-empty">
-            <el-empty description="暂无日志数据" />
-          </div>
-          <div v-else class="log-content">
-            <div
-              v-for="(line, index) in logContent.lines"
-              :key="index"
-              class="log-line"
-              :class="getLineClass(line)"
-            >
-              <span class="line-number">{{ logContent.total_lines - logContent.lines.length + index + 1 }}</span>
-              <span class="line-text" v-html="highlightSearch(line)"></span>
-            </div>
+        <div v-else-if="!logContent || logContent.lines.length === 0" class="log-empty">
+          <el-empty description="暂无日志数据" />
+        </div>
+        <div v-else class="log-content">
+          <div
+            v-for="(line, index) in logContent.lines"
+            :key="index"
+            class="log-line"
+            :class="getLineClass(line)"
+          >
+            <span class="line-number">{{ logContent.total_lines - logContent.lines.length + index + 1 }}</span>
+            <span class="line-text" v-html="highlightSearch(line)"></span>
           </div>
         </div>
-      </el-card>
+      </div>
     </div>
   </div>
 </template>
@@ -152,73 +137,53 @@ onMounted(() => {
 </script>
 
 <style scoped>
-.page-wrapper {
-  height: calc(100vh - var(--header-height) - var(--spacing-lg) * 2);
-  display: flex;
-  flex-direction: column;
+.page-wrapper { 
+  height: 100%; 
+  display: flex; 
+  flex-direction: column; 
+  overflow: hidden; 
 }
 
-.page-content {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  min-height: 0;
+.page-toolbar { 
+  flex-shrink: 0; 
+  margin-bottom: var(--spacing-lg); 
+  display: flex; 
+  justify-content: space-between; 
+  align-items: center; 
 }
 
-.log-card {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  border-radius: var(--radius-lg);
+.page-toolbar__left { 
+  display: flex; 
+  gap: var(--spacing-md); 
+  align-items: center; 
 }
 
-.log-card :deep(.el-card__body) {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  padding: var(--spacing-md);
-  min-height: 0;
+.page-toolbar__right { 
+  display: flex; 
+  gap: var(--spacing-md); 
+  align-items: center; 
 }
 
-.card-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  flex-wrap: wrap;
-  gap: var(--spacing-md);
+.page-content { 
+  flex: 1; 
+  display: flex; 
+  flex-direction: column; 
+  min-height: 0; 
+  overflow: hidden; 
 }
 
-.header-left, .header-right {
-  display: flex;
-  align-items: center;
-}
 
-.log-info {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-lg);
-  padding: var(--spacing-sm) var(--spacing-md);
-  background: var(--bg-color);
-  border-radius: var(--radius-md);
-  margin-bottom: var(--spacing-md);
-  font-size: var(--font-size-sm);
-  color: var(--text-color-secondary);
-}
-
-.info-item {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-xs);
-}
 
 .log-container {
   flex: 1;
+  min-height: 0;
   background: #1e1e1e;
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-lg);
   overflow: auto;
   font-family: 'JetBrains Mono', 'Fira Code', 'Consolas', monospace;
   font-size: 12px;
   line-height: 1.6;
+  border: 1px solid var(--border-color-lighter);
 }
 
 .log-loading, .log-empty {

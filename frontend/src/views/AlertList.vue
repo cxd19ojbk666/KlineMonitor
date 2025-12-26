@@ -2,29 +2,26 @@
   <div class="page-wrapper">
     <div class="page-toolbar">
       <div class="page-toolbar__left">
-        <el-autocomplete
+        <el-select
           v-model="filters.symbol"
-          :fetch-suggestions="querySymbols"
           placeholder="输入交易对名称"
           clearable
+          filterable
           class="search-input"
-          @keyup.enter="handleSearch"
+          style="width: 200px"
+          @change="handleSearch"
           @clear="handleSearch"
-          @select="handleSearch"
-          :trigger-on-focus="false"
-          highlight-first-item
         >
           <template #prefix>
             <el-icon><Search /></el-icon>
           </template>
-          <template #default="{ item }">
-            <div class="symbol-suggestion">
-              <span class="symbol-name">{{ item.value }}</span>
-              <el-tag v-if="item.is_active" type="success" size="small">监控中</el-tag>
-              <el-tag v-else type="info" size="small">未监控</el-tag>
-            </div>
-          </template>
-        </el-autocomplete>
+          <el-option
+            v-for="item in symbolsCache"
+            :key="item.symbol"
+            :label="item.symbol"
+            :value="item.symbol"
+          />
+        </el-select>
         
         <el-date-picker
           v-model="filters.timeRange"
@@ -42,8 +39,8 @@
 
         <el-select v-model="filters.alert_type" placeholder="全部类型" class="filter-select" clearable @change="handleSearch">
           <el-option label="全部类型" :value="undefined" />
-          <el-option label="成交量提醒" :value="1" />
-          <el-option label="涨幅提醒" :value="2" />
+          <el-option label="成交量" :value="1" />
+          <el-option label="涨幅" :value="2" />
           <el-option label="开盘价匹配" :value="3" />
         </el-select>
 

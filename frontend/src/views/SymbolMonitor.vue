@@ -6,11 +6,14 @@
           v-model="selectedSymbol"
           :options="symbolOptions"
           placeholder="搜索交易对"
-          style="width: 160px"
+          style="width: 200px"
           @change="fetchData"
           filterable
-        />
-        <div class="page-toolbar__divider"></div>
+        >
+          <template #prefix>
+            <el-icon><Search /></el-icon>
+          </template>
+        </el-select-v2>
         <el-radio-group v-model="interval" @change="fetchData" size="default">
           <el-radio-button value="15m">15m</el-radio-button>
           <el-radio-button value="30m">30m</el-radio-button>
@@ -23,8 +26,8 @@
       </div>
       <div class="page-toolbar__right">
         <el-radio-group v-model="viewMode" size="default">
-          <el-radio-button value="chart"><el-icon><TrendCharts /></el-icon></el-radio-button>
-          <el-radio-button value="table"><el-icon><List /></el-icon></el-radio-button>
+          <el-radio-button value="chart">图表</el-radio-button>
+          <el-radio-button value="table">列表</el-radio-button>
         </el-radio-group>
       </div>
     </div>
@@ -175,7 +178,7 @@ import * as echarts from 'echarts'
 import { getSymbolMonitorData, getSymbols, createEventSource } from '@/api'
 import type { SymbolMonitorData } from '@/types'
 import type { SSEEvent } from '@/api'
-import { TrendCharts, List } from '@element-plus/icons-vue'
+import { Search } from '@element-plus/icons-vue'
 import { logger } from '@/utils/logger'
 
 const loading = ref(false)

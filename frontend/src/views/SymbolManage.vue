@@ -3,9 +3,28 @@
     <!-- 交易对列表 -->
     <div class="page-toolbar">
       <div class="page-toolbar__left">
-        <el-input v-model="searchText" placeholder="输入交易对名称" clearable class="search-input" @keyup.enter="handleSearch" @clear="handleSearch">
-          <template #prefix><el-icon><Search /></el-icon></template>
-        </el-input>
+        <el-select
+          v-model="searchText"
+          placeholder="输入交易对名称"
+          clearable
+          filterable
+          allow-create
+          default-first-option
+          class="search-input"
+          style="width: 200px"
+          @change="handleSearch"
+          @clear="handleSearch"
+        >
+          <template #prefix>
+            <el-icon><Search /></el-icon>
+          </template>
+          <el-option
+            v-for="item in symbols"
+            :key="item.symbol"
+            :label="item.symbol"
+            :value="item.symbol"
+          />
+        </el-select>
         <el-select v-model="filterActive" placeholder="状态筛选" class="filter-select--small" clearable @change="handleSearch" @clear="handleSearch">
           <el-option label="全部状态" :value="undefined" />
           <el-option label="已启用" :value="true" />
