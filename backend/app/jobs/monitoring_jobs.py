@@ -356,6 +356,7 @@ def preload_all_data(symbols: List[str]) -> tuple:
     Returns:
         (global_configs, config_cache, klines_by_symbol)
     """
+    start_time = now_beijing()
     db = SessionLocal()
     try:
         # 1. 预加载全局配置
@@ -391,8 +392,10 @@ def preload_all_data(symbols: List[str]) -> tuple:
         for k in all_bullish_klines:
             klines_by_symbol[k.symbol][k.interval].append(k)
         
+        elapsed = (now_beijing() - start_time).total_seconds()
         logger.info(
-            f"[监控预加载] 配置: {len(all_symbol_configs)}条 | "
+            f"[监控预加载] 耗时: {elapsed:.2f}秒 | "
+            f"配置: {len(all_symbol_configs)}条 | "
             f"K线: {len(all_bullish_klines)}条"
         )
         
@@ -426,10 +429,10 @@ async def run_monitor_task(symbols: List[str] = None):
         if not symbols:
             return
         
-        logger.info(f"[监控检查] 开始 - 交易对: {len(symbols)}个")
-        
-        # 启动监控统计收集
+        # 启动监控统计收集（在预加载之前启动，确保统计完整耗时）
         monitor_stats_collector.start_batch()
+        
+        logger.info(f"[监控检查] 开始 - 交易对: {len(symbols)}个")
         
         # 批量预加载所有数据（一次性查询）
         global_configs, config_cache, klines_by_symbol = preload_all_data(symbols)
@@ -451,7 +454,7 @@ async def run_monitor_task(symbols: List[str] = None):
         # 完成统计并输出汇总
         stats = monitor_stats_collector.finish_batch()
         if stats:
-            logger.info("\n" + stats.format_summary())
+            logger.info(stats.format_summary())
         
         # 广播监控任务完成事件
         await event_broadcaster.broadcast("monitor_complete", {
