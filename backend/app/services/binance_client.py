@@ -131,21 +131,25 @@ class BinanceClient:
             k: K线原始数据列表
         
         Returns:
-            解析后的K线数据字典（时间为北京时间）
+            解析后的K线数据字典（时间为北京时间，naive datetime）
         """
         from datetime import datetime
         # 币安API返回的是UTC时间戳，转换为北京时间
         open_time_utc = datetime.utcfromtimestamp(k[0] / 1000)
         close_time_utc = datetime.utcfromtimestamp(k[6] / 1000)
         
+        # 转换为北京时间后移除时区信息，保持与数据库一致（naive datetime）
+        open_time_beijing = utc_to_beijing(open_time_utc.replace(tzinfo=timezone.utc))
+        close_time_beijing = utc_to_beijing(close_time_utc.replace(tzinfo=timezone.utc))
+        
         return {
-            "open_time": utc_to_beijing(open_time_utc.replace(tzinfo=timezone.utc)),
+            "open_time": open_time_beijing.replace(tzinfo=None),
             "open": float(k[1]),
             "high": float(k[2]),
             "low": float(k[3]),
             "close": float(k[4]),
             "volume": float(k[5]),
-            "close_time": utc_to_beijing(close_time_utc.replace(tzinfo=timezone.utc)),
+            "close_time": close_time_beijing.replace(tzinfo=None),
             "quote_volume": float(k[7]),
             "trades": int(k[8]),
             "taker_buy_volume": float(k[9]),
