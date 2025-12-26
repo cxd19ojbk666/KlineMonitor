@@ -9,14 +9,12 @@
 - 需求三：开盘价匹配 - 历史开盘价匹配检测
 
 性能优化：
-- 批量预加载所有交易对的个性化配置
-- 批量查询所有周期的K线数据
+- 批量获取全局配置，减少数据库查询
 - 并行执行独立的监控检查
 - 复用K线数据，避免重复查询
-- 内存中按周期分组处理
+- 单次数据库连接复用
 """
 import asyncio
-from collections import defaultdict
 from datetime import timedelta
 from typing import Dict, List, Any, Optional
 
@@ -42,62 +40,9 @@ class MonitorService:
     _config_cache_time: Optional[Any] = None
     _config_cache_ttl: int = 60  # 配置缓存60秒
     
-    # 批量预加载的个性化配置缓存
-    _symbol_configs_cache: Dict[tuple, SymbolConfig] = {}
-    _symbol_configs_cache_time: Optional[Any] = None
-    
     def __init__(self):
         self.binance = binance_client
         self.alert = alert_service
-    
-    def preload_symbol_configs(self, db: Session, symbols: List[str]) -> Dict[tuple, SymbolConfig]:
-        """
-        批量预加载所有交易对的个性化配置
-        
-        Args:
-            db: 数据库会话
-            symbols: 交易对列表
-        
-        Returns:
-            {(symbol, interval): SymbolConfig} 映射
-        """
-        now = now_beijing()
-        
-        # 检查缓存是否有效（60秒内）
-        if (self._symbol_configs_cache_time and 
-            (now - self._symbol_configs_cache_time).total_seconds() < self._config_cache_ttl):
-            return self._symbol_configs_cache
-        
-        # 一次性查询所有交易对的配置
-        configs = db.query(SymbolConfig).filter(
-            SymbolConfig.symbol.in_(symbols)
-        ).all()
-        
-        # 构建映射
-        self._symbol_configs_cache = {(c.symbol, c.interval): c for c in configs}
-        self._symbol_configs_cache_time = now
-        
-        logger.debug(f"[Monitor] 预加载了 {len(configs)} 条个性化配置")
-        return self._symbol_configs_cache
-    
-    def get_symbol_config_from_cache(
-        self, 
-        symbol: str, 
-        interval: str, 
-        config_cache: Dict[tuple, SymbolConfig]
-    ) -> Optional[SymbolConfig]:
-        """
-        从缓存中获取个性化配置
-        
-        Args:
-            symbol: 交易对
-            interval: K线间隔
-            config_cache: 预加载的配置缓存
-        
-        Returns:
-            配置对象或None
-        """
-        return config_cache.get((symbol, interval))
     
     async def _get_1m_klines_cached(self, symbol: str, limit: int = 481) -> List[dict]:
         """
@@ -454,87 +399,6 @@ class MonitorService:
             logger.debug(f"[Monitor] 开盘价匹配异常 {symbol} {timeframe}: {e}")
             return False
     
-    async def check_open_price_match_optimized(
-        self, 
-        symbol: str, 
-        timeframe: str, 
-        bullish_klines: List[PriceKline],
-        global_configs: Dict[str, Any],
-        config_cache: Dict[tuple, SymbolConfig]
-    ) -> bool:
-        """
-        需求三：开盘价匹配（优化版 - 使用预加载的K线和配置）
-        
-        Args:
-            symbol: 交易对
-            timeframe: K线周期
-            bullish_klines: 预加载的该周期阳线数据
-            global_configs: 全局配置字典
-            config_cache: 预加载的个性化配置缓存
-        """
-        try:
-            global_price_error = global_configs["price_error"]
-            global_middle_kline_cnt = global_configs["middle_kline_cnt"]
-            global_fake_kline_cnt = global_configs["fake_kline_cnt"]
-            
-            # 从缓存获取个性化配置
-            symbol_config = self.get_symbol_config_from_cache(symbol, timeframe, config_cache)
-            
-            price_error = symbol_config.price_error if symbol_config and symbol_config.price_error is not None else global_price_error
-            middle_kline_cnt = symbol_config.middle_kline_cnt if symbol_config and symbol_config.middle_kline_cnt is not None else global_middle_kline_cnt
-            fake_count_n = symbol_config.fake_kline_cnt if symbol_config and symbol_config.fake_kline_cnt is not None else global_fake_kline_cnt
-            
-            if len(bullish_klines) < 2:
-                return False
-            
-            latest = bullish_klines[0]
-            price_d = latest.open
-            time_d = latest.open_time
-            
-            for i, historical in enumerate(bullish_klines[1:], 1):
-                if i < middle_kline_cnt:
-                    continue
-                
-                price_e = historical.open
-                time_e = historical.open_time
-                error_percent = abs(price_d - price_e) / min(price_d, price_e) * 100
-                
-                if error_percent <= price_error:
-                    avg_price = (price_d + price_e) / 2
-                    
-                    # 在内存中过滤中间K线
-                    middle_count = sum(
-                        1 for k in bullish_klines 
-                        if time_e < k.open_time < time_d and k.open < avg_price
-                    )
-                    
-                    if middle_count <= fake_count_n:
-                        dedup_key = f"{timeframe}_{time_d.strftime('%Y%m%d%H%M')}_{time_e.strftime('%Y%m%d%H%M')}"
-                        
-                        minutes_per_interval = BinanceClient.INTERVAL_TO_MINUTES.get(timeframe, 15)
-                        diff_minutes = (time_d - time_e).total_seconds() / 60
-                        interval_count = int(diff_minutes / minutes_per_interval)
-                        
-                        data = {
-                            "timeframe": timeframe,
-                            "price_d": price_d,
-                            "price_e": price_e,
-                            "time_d": time_d.strftime('%Y-%m-%d %H:%M'),
-                            "time_e": time_e.strftime('%Y-%m-%d %H:%M'),
-                            "price_error": error_percent,
-                            "price_error_threshold": price_error,
-                            "middle_count": interval_count,
-                            "middle_count_threshold": fake_count_n
-                        }
-                        result = await self.alert.reminder(symbol, 3, data, dedup_key=dedup_key)
-                        return result is not None
-            
-            return False
-                
-        except Exception as e:
-            logger.debug(f"[Monitor] 开盘价匹配异常 {symbol} {timeframe}: {e}")
-            return False
-    
     async def check_open_price_match(self, symbol: str, timeframe: str) -> bool:
         """
         需求三：开盘价匹配（兼容旧接口）
@@ -552,81 +416,6 @@ class MonitorService:
         except Exception as e:
             logger.debug(f"[Monitor] 开盘价匹配异常 {symbol} {timeframe}: {e}")
             return False
-    
-    async def run_all_checks_optimized(
-        self, 
-        symbol: str, 
-        global_configs: Dict[str, Any],
-        config_cache: Dict[tuple, SymbolConfig],
-        klines_by_interval: Dict[str, List[PriceKline]]
-    ) -> dict:
-        """
-        运行所有监控检查（高度优化版：使用预加载数据）
-        
-        Args:
-            symbol: 交易对
-            global_configs: 预加载的全局配置
-            config_cache: 预加载的个性化配置缓存
-            klines_by_interval: 预加载的各周期阳线数据
-        
-        Returns:
-            检查结果字典
-        """
-        results = {
-            "symbol": symbol,
-            "volume_alert": False,
-            "rise_alert": False,
-            "open_price_alerts": {},
-            "error": ""
-        }
-        
-        try:
-            # 获取1分钟K线数据（成交量和涨幅共用）
-            klines_1m = await self._get_1m_klines_cached(symbol, 481)
-            
-            timeframes = ['15m', '30m', '1h', '4h', '1d', '3d']
-            
-            # 创建所有任务
-            tasks = [
-                # 需求一：成交量监控
-                self.check_volume_with_klines(symbol, klines_1m, global_configs["volume_percent"]),
-                # 需求二：涨幅监控
-                self.check_rise_with_klines(symbol, klines_1m, global_configs["rise_percent"]),
-            ]
-            
-            # 需求三：开盘价匹配（各周期）- 使用预加载的K线数据
-            for tf in timeframes:
-                bullish_klines = klines_by_interval.get(tf, [])
-                tasks.append(self.check_open_price_match_optimized(
-                    symbol, tf, bullish_klines, global_configs, config_cache
-                ))
-            
-            # 并行执行所有任务
-            all_results = await asyncio.gather(*tasks, return_exceptions=True)
-            
-            # 解析结果
-            results["volume_alert"] = all_results[0] if not isinstance(all_results[0], Exception) else False
-            results["rise_alert"] = all_results[1] if not isinstance(all_results[1], Exception) else False
-            
-            for i, tf in enumerate(timeframes):
-                result = all_results[2 + i]
-                results["open_price_alerts"][tf] = result if not isinstance(result, Exception) else False
-                
-        except Exception as e:
-            results["error"] = str(e)
-            logger.debug(f"[Monitor] {symbol} 监控异常: {e}")
-        
-        # 记录到统计收集器
-        monitor_result = MonitorResult(
-            symbol=symbol,
-            volume_alert=results["volume_alert"],
-            rise_alert=results["rise_alert"],
-            open_price_alerts=results["open_price_alerts"],
-            error=results["error"]
-        )
-        monitor_stats_collector.add_result(monitor_result)
-        
-        return results
     
     async def run_all_checks(self, symbol: str) -> dict:
         """
