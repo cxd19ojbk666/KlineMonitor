@@ -22,7 +22,7 @@ from ..core.config import settings
 from ..core.database import SessionLocal
 from ..core.logger import logger
 from ..core.stats import sync_stats_collector, SyncResult
-from ..core.timezone import now_beijing, utc_to_beijing
+from ..core.timezone import now_beijing, utc_to_beijing, BEIJING_TZ
 from ..models.kline import PriceKline
 
 
@@ -307,7 +307,11 @@ class BinanceClient:
             
             if latest_kline:
                 # 增量同步：从数据库最新时间开始获取
-                start_time = latest_kline.open_time + timedelta(minutes=interval_minutes)
+                # 数据库存储的是 naive datetime，需要添加时区信息
+                db_open_time = latest_kline.open_time
+                if db_open_time.tzinfo is None:
+                    db_open_time = db_open_time.replace(tzinfo=BEIJING_TZ)
+                start_time = db_open_time + timedelta(minutes=interval_minutes)
                 periods_needed = int((now - start_time).total_seconds() / 60 / interval_minutes)
                 logger.debug(f"[Binance] {symbol} {interval} 增量同步: 最新={latest_kline.open_time}, 需要{periods_needed}条")
                 

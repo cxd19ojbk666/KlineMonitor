@@ -10,7 +10,7 @@ import httpx
 
 from ..core.config import settings
 from ..core.database import SessionLocal
-from ..core.timezone import now_beijing
+from ..core.timezone import now_beijing, BEIJING_TZ
 from ..models.alert import Alert, AlertDedup
 
 
@@ -83,7 +83,11 @@ class AlertService:
         if dedup:
             # 检查是否在间隔时间内
             time_threshold = now_beijing() - timedelta(minutes=interval_minutes)
-            if dedup.last_alert_time >= time_threshold:
+            # 数据库存储的是 naive datetime，需要添加时区信息再比较
+            last_alert_time = dedup.last_alert_time
+            if last_alert_time.tzinfo is None:
+                last_alert_time = last_alert_time.replace(tzinfo=BEIJING_TZ)
+            if last_alert_time >= time_threshold:
                 return True  # 在间隔内，应跳过
         
         return False
