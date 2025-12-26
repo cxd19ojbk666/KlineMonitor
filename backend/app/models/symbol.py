@@ -3,10 +3,10 @@
 ===============
 包含监控币种的数据库表定义
 """
-from datetime import datetime
 from sqlalchemy import Boolean, Column, DateTime, Integer, String
 
 from ..core.database import Base
+from ..core.timezone import now_beijing
 
 
 class Symbol(Base):

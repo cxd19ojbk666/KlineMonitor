@@ -3,13 +3,14 @@
 =======
 提供提醒相关的业务逻辑：去重检查、数据库入库、微信消息推送
 """
-from datetime import datetime, timedelta
+from datetime import timedelta
 from typing import Optional, Dict, Any
 
 import httpx
 
 from ..core.config import settings
 from ..core.database import SessionLocal
+from ..core.timezone import now_beijing, BEIJING_TZ
 from ..models.alert import Alert, AlertDedup
 
 
@@ -81,8 +82,12 @@ class AlertService:
         
         if dedup:
             # 检查是否在间隔时间内
-            time_threshold = datetime.utcnow() - timedelta(minutes=interval_minutes)
-            if dedup.last_alert_time >= time_threshold:
+            time_threshold = now_beijing() - timedelta(minutes=interval_minutes)
+            # 数据库存储的是 naive datetime，需要添加时区信息再比较
+            last_alert_time = dedup.last_alert_time
+            if last_alert_time.tzinfo is None:
+                last_alert_time = last_alert_time.replace(tzinfo=BEIJING_TZ)
+            if last_alert_time >= time_threshold:
                 return True  # 在间隔内，应跳过
         
         return False
@@ -99,7 +104,7 @@ class AlertService:
                 symbol=symbol,
                 alert_type=3,
                 dedup_key=dedup_key,
-                last_alert_time=datetime.utcnow()
+                last_alert_time=now_beijing()
             )
             db.add(dedup)
             db.commit()
@@ -111,13 +116,13 @@ class AlertService:
             ).first()
             
             if dedup:
-                dedup.last_alert_time = datetime.utcnow()
+                dedup.last_alert_time = now_beijing()
             else:
                 dedup = AlertDedup(
                     symbol=symbol,
                     alert_type=alert_type,
                     dedup_key=f"type{alert_type}_interval",
-                    last_alert_time=datetime.utcnow()
+                    last_alert_time=now_beijing()
                 )
                 db.add(dedup)
             db.commit()
@@ -152,7 +157,7 @@ class AlertService:
                 symbol=symbol,
                 alert_type=alert_type,
                 data=data,
-                created_at=datetime.utcnow()
+                created_at=now_beijing()
             )
             db.add(alert)
             db.commit()

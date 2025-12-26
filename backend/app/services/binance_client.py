@@ -11,7 +11,7 @@
 - 清理过期K线数据
 """
 import asyncio
-from datetime import datetime, timedelta, timezone
+from datetime import timedelta, timezone
 from typing import List, Optional
 
 from binance.client import Client
@@ -22,6 +22,7 @@ from ..core.config import settings
 from ..core.database import SessionLocal
 from ..core.logger import logger
 from ..core.stats import sync_stats_collector, SyncResult
+from ..core.timezone import now_beijing, utc_to_beijing, BEIJING_TZ
 from ..models.kline import PriceKline
 
 
@@ -100,7 +101,7 @@ class BinanceClient:
     def __init__(self):
         self._client = None
         # (symbol, interval) -> last sync time
-        self._last_sync_time: dict[tuple[str, str], datetime] = {}
+        self._last_sync_time: dict[tuple[str, str], any] = {}
         # 固定分钟窗口速率限制（每分钟0秒重置，1分钟内最多1200次请求）
         self._request_count: int = 0  # 当前分钟的请求计数
         self._current_minute: int = -1  # 当前分钟标记（用于检测分钟切换）
@@ -124,22 +125,31 @@ class BinanceClient:
     
     def _parse_kline(self, k: list) -> dict:
         """
-        解析K线原始数据
+        解析K线原始数据（从UTC转换为北京时间）
         
         Args:
             k: K线原始数据列表
         
         Returns:
-            解析后的K线数据字典
+            解析后的K线数据字典（时间为北京时间，naive datetime）
         """
+        from datetime import datetime
+        # 币安API返回的是UTC时间戳，转换为北京时间
+        open_time_utc = datetime.utcfromtimestamp(k[0] / 1000)
+        close_time_utc = datetime.utcfromtimestamp(k[6] / 1000)
+        
+        # 转换为北京时间后移除时区信息，保持与数据库一致（naive datetime）
+        open_time_beijing = utc_to_beijing(open_time_utc.replace(tzinfo=timezone.utc))
+        close_time_beijing = utc_to_beijing(close_time_utc.replace(tzinfo=timezone.utc))
+        
         return {
-            "open_time": datetime.utcfromtimestamp(k[0] / 1000),
+            "open_time": open_time_beijing.replace(tzinfo=None),
             "open": float(k[1]),
             "high": float(k[2]),
             "low": float(k[3]),
             "close": float(k[4]),
             "volume": float(k[5]),
-            "close_time": datetime.utcfromtimestamp(k[6] / 1000),
+            "close_time": close_time_beijing.replace(tzinfo=None),
             "quote_volume": float(k[7]),
             "trades": int(k[8]),
             "taker_buy_volume": float(k[9]),
@@ -155,7 +165,7 @@ class BinanceClient:
         每分钟0秒重置计数器
         """
         async with self._rate_limit_lock:
-            now = datetime.now()
+            now = now_beijing()
             current_minute = now.minute + now.hour * 60  # 使用小时+分钟作为分钟标记
             
             # 检测分钟切换，重置计数器
@@ -170,7 +180,7 @@ class BinanceClient:
                 logger.warning(f"API速率限制：等待{seconds_to_wait:.1f}秒到下一分钟")
                 await asyncio.sleep(seconds_to_wait)
                 # 重置计数器
-                now = datetime.now()
+                now = now_beijing()
                 self._current_minute = now.minute + now.hour * 60
                 self._request_count = 0
             
@@ -277,7 +287,7 @@ class BinanceClient:
         
         # 节流检查 - 基于(symbol, interval)组合
         cache_key = (symbol, interval)
-        now = datetime.utcnow()
+        now = now_beijing()
         if not force and cache_key in self._last_sync_time:
             elapsed = (now - self._last_sync_time[cache_key]).total_seconds()
             if elapsed < self.SYNC_THROTTLE_SECONDS:

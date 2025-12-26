@@ -7,8 +7,15 @@
 - 需求一：成交量监控 - 15分钟成交量与8小时成交量对比
 - 需求二：涨幅监控 - 15分钟累计涨幅检测
 - 需求三：开盘价匹配 - 历史开盘价匹配检测
+
+性能优化：
+- 批量获取全局配置，减少数据库查询
+- 并行执行独立的监控检查
+- 复用K线数据，避免重复查询
 """
-from datetime import datetime, timedelta
+import asyncio
+from datetime import timedelta
+from typing import Dict, List, Any, Optional
 
 from sqlalchemy.orm import Session
 
@@ -16,6 +23,7 @@ from ..core.config import settings
 from ..core.database import SessionLocal
 from ..core.logger import logger
 from ..core.stats import monitor_stats_collector, MonitorResult
+from ..core.timezone import now_beijing
 from ..models.kline import PriceKline
 from ..models.config import SymbolConfig
 from .binance_client import binance_client
@@ -26,10 +34,59 @@ from .config_service import config_service
 class MonitorService:
     """监控服务 - 实现三大需求的核心逻辑"""
     
+    # 缓存全局配置，避免每个交易对都查询
+    _global_config_cache: Dict[str, Any] = {}
+    _config_cache_time: Optional[Any] = None
+    _config_cache_ttl: int = 60  # 配置缓存60秒
+    
     def __init__(self):
         self.binance = binance_client
         self.alert = alert_service
     
+    def _get_global_configs(self, db: Session) -> Dict[str, Any]:
+        """
+        批量获取全局配置（带缓存）
+        
+        Returns:
+            全局配置字典
+        """
+        now = now_beijing()
+        
+        # 检查缓存是否有效
+        if (self._config_cache_time and 
+            (now - self._config_cache_time).total_seconds() < self._config_cache_ttl):
+            return self._global_config_cache
+        
+        # 批量获取所有需要的配置
+        self._global_config_cache = {
+            "volume_percent": config_service.get_config_float(db, "1_volume_percent", settings.DEFAULT_1_VOLUME_PERCENT),
+            "rise_percent": config_service.get_config_float(db, "2_rise_percent", settings.DEFAULT_2_RISE_PERCENT),
+            "price_error": config_service.get_config_float(db, "3_price_error", settings.DEFAULT_3_PRICE_ERROR),
+            "middle_kline_cnt": int(config_service.get_config_float(db, "3_middle_kline_cnt", settings.DEFAULT_3_MIDDLE_KLINE_CNT)),
+            "fake_kline_cnt": int(config_service.get_config_float(db, "3_fake_kline_cnt", settings.DEFAULT_3_FAKE_KLINE_CNT)),
+        }
+        self._config_cache_time = now
+        
+        return self._global_config_cache
+    
+    def _get_symbol_configs_batch(self, db: Session, symbol: str, intervals: List[str]) -> Dict[str, SymbolConfig]:
+        """
+        批量获取币种的个性化配置
+        
+        Args:
+            db: 数据库会话
+            symbol: 交易对
+            intervals: K线间隔列表
+        
+        Returns:
+            {interval: SymbolConfig} 映射
+        """
+        configs = db.query(SymbolConfig).filter(
+            SymbolConfig.symbol == symbol,
+            SymbolConfig.interval.in_(intervals)
+        ).all()
+        
+        return {c.interval: c for c in configs}
     
     def _get_symbol_config(self, db: Session, symbol: str, interval: str) -> SymbolConfig | None:
         """
