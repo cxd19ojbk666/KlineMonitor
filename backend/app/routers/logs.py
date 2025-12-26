@@ -4,7 +4,7 @@
 提供日志文件读取API
 """
 import os
-from datetime import datetime
+from datetime import datetime, timezone, timedelta
 from pathlib import Path
 from typing import Optional, List
 from fastapi import APIRouter, Query, HTTPException
@@ -13,6 +13,9 @@ from pydantic import BaseModel
 router = APIRouter(prefix="/logs", tags=["日志"])
 
 LOG_DIR = Path("logs")
+
+# 北京时区 UTC+8
+BEIJING_TZ = timezone(timedelta(hours=8))
 
 
 class LogFile(BaseModel):
@@ -52,12 +55,14 @@ def list_log_files():
         file_path = LOG_DIR / log_name
         if file_path.exists():
             stat = file_path.stat()
+            # 将UTC时间戳转换为北京时间
+            modified_time = datetime.fromtimestamp(stat.st_mtime, tz=timezone.utc).astimezone(BEIJING_TZ)
             files.append(LogFile(
                 name=log_name,
                 type=log_type,
                 date="",
                 size=stat.st_size,
-                modified=datetime.fromtimestamp(stat.st_mtime).strftime("%Y-%m-%d %H:%M:%S")
+                modified=modified_time.strftime("%Y-%m-%d %H:%M:%S")
             ))
     
     return files

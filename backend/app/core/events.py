@@ -1,8 +1,9 @@
 """事件广播器 - 用于 SSE 推送通知前端刷新"""
 import asyncio
 from typing import Set, Dict, Any
-from datetime import datetime
 import json
+
+from .timezone import now_beijing
 
 
 class EventBroadcaster:
@@ -29,7 +30,7 @@ class EventBroadcaster:
         event = {
             "type": event_type,
             "data": data or {},
-            "timestamp": datetime.now().isoformat()
+            "timestamp": now_beijing().isoformat()
         }
         
         async with self._lock:

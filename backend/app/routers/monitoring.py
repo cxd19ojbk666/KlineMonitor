@@ -270,7 +270,7 @@ async def _get_symbol_monitor_data(db, symbol: str, interval: str, kline_limit: 
     
     return SymbolMonitorData(
         symbol=symbol,
-        timestamp=datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S"),
+        timestamp=now_beijing().strftime("%Y-%m-%d %H:%M:%S"),
         current_price=current_price,
         metrics=MonitorMetrics(
             volume_15m=volume_15m,

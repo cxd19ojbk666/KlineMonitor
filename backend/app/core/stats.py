@@ -6,6 +6,8 @@ from typing import Dict, List
 from dataclasses import dataclass, field
 from datetime import datetime
 
+from .timezone import now_beijing
+
 
 @dataclass
 class SyncResult:
@@ -21,7 +23,7 @@ class SyncResult:
 @dataclass
 class SyncStats:
     """同步统计汇总"""
-    start_time: datetime = field(default_factory=datetime.utcnow)
+    start_time: datetime = field(default_factory=now_beijing)
     end_time: datetime = None
     success_count: int = 0
     failed_count: int = 0
@@ -66,13 +68,13 @@ class SyncStats:
     
     def finish(self):
         """标记统计完成"""
-        self.end_time = datetime.utcnow()
+        self.end_time = now_beijing()
     
     def get_duration(self) -> float:
         """获取耗时（秒）"""
         if self.end_time:
             return (self.end_time - self.start_time).total_seconds()
-        return (datetime.utcnow() - self.start_time).total_seconds()
+        return (now_beijing() - self.start_time).total_seconds()
     
     def format_summary(self) -> str:
         """格式化汇总信息"""
@@ -153,7 +155,7 @@ class MonitorResult:
 @dataclass
 class MonitorStats:
     """监控统计汇总"""
-    start_time: datetime = field(default_factory=datetime.utcnow)
+    start_time: datetime = field(default_factory=now_beijing)
     end_time: datetime = None
     total_checked: int = 0
     volume_triggered: int = 0
@@ -197,13 +199,13 @@ class MonitorStats:
     
     def finish(self):
         """标记统计完成"""
-        self.end_time = datetime.utcnow()
+        self.end_time = now_beijing()
     
     def get_duration(self) -> float:
         """获取耗时（秒）"""
         if self.end_time:
             return (self.end_time - self.start_time).total_seconds()
-        return (datetime.utcnow() - self.start_time).total_seconds()
+        return (now_beijing() - self.start_time).total_seconds()
     
     def format_summary(self) -> str:
         """格式化汇总信息"""

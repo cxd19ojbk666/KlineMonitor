@@ -200,7 +200,7 @@ class MonitorService:
                 middle_kline_cnt = self._get_symbol_middle_kline_cnt(db, symbol, timeframe, global_middle_kline_cnt)
                 fake_count_n = self._get_symbol_fake_kline_cnt(db, symbol, timeframe, global_fake_kline_cnt)
                 
-                now = datetime.utcnow()
+                now = now_beijing()
                 one_month_ago = now - timedelta(days=settings.MAX_LOOKBACK_DAYS)
                 
                 bullish_klines = db.query(PriceKline).filter(

@@ -45,7 +45,7 @@ class Alert(Base):
     symbol = Column(String(50), nullable=False, index=True)
     alert_type = Column(Integer, nullable=False)
     data = Column(JSON, nullable=False)
-    created_at = Column(DateTime, default=datetime.utcnow)
+    created_at = Column(DateTime, default=now_beijing)
 
 
 class AlertDedup(Base):

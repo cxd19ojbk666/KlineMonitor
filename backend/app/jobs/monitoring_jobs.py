@@ -9,7 +9,6 @@
 - run_monitor_task: 主监控任务
 """
 import asyncio
-from datetime import datetime
 from typing import List
 
 from ..core.database import SessionLocal
@@ -17,6 +16,7 @@ from ..core.events import event_broadcaster
 from ..core.scheduler import is_scheduler_running
 from ..core.stats import sync_stats_collector, monitor_stats_collector
 from ..core.logger import logger
+from ..core.timezone import now_beijing
 from ..models.symbol import Symbol
 from ..services.binance_client import binance_client
 from ..services.monitor_service import monitor_service

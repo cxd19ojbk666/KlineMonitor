@@ -68,7 +68,8 @@ def get_dashboard(db: Session = Depends(get_db_session)):
     """
     from ..core.scheduler import scheduler_running
     
-    today_start = datetime.utcnow().replace(hour=0, minute=0, second=0, microsecond=0)
+    # 使用北京时间计算今日开始时间
+    today_start = now_beijing().replace(hour=0, minute=0, second=0, microsecond=0)
     
     # 今日提醒总数
     total_alerts_today = db.query(Alert).filter(Alert.created_at >= today_start).count()

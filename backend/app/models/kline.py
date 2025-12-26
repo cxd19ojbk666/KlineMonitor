@@ -3,7 +3,6 @@ K线数据模型
 ===========
 包含多周期K线数据的数据库表定义
 """
-from datetime import datetime
 from sqlalchemy import Column, DateTime, Float, Integer, String, UniqueConstraint, Index
 
 from ..core.database import Base

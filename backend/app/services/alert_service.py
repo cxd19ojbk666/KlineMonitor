@@ -190,7 +190,7 @@ class AlertService:
 
 【类型】{type_name}
 【币种】{symbol}
-【时间】{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
+【时间】{now_beijing().strftime('%Y-%m-%d %H:%M:%S')}
 【详情】{detail}"""
     
     async def reminder(

@@ -128,7 +128,7 @@
 import { ref, computed, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { CircleCheck, Search, Plus, Close, Delete, FolderAdd } from '@element-plus/icons-vue'
-import dayjs from 'dayjs'
+import { formatBeijingTime } from '@/utils/time'
 import { getSymbols, createSymbol, toggleSymbol, deleteSymbol, batchActivateSymbols, batchDeleteSymbols } from '@/api'
 import type { Symbol } from '@/types'
 import { useSymbolSync } from '@/composables/useSymbolSync'
@@ -158,7 +158,7 @@ const hasSelection = computed(() => selectedCount.value > 0)
 const selectedSymbolNames = computed(() => selectedSymbols.value.map(s => s.symbol))
 const selectionDisabled = computed(() => !hasSelection.value || loading.value)
 
-const formatTime = (time: string) => dayjs(time).format('YYYY-MM-DD HH:mm')
+const formatTime = (time: string) => formatBeijingTime(time)
 
 const fetchData = async () => {
   loading.value = true

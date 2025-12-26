@@ -43,10 +43,10 @@ class SymbolConfig(Base):
     middle_kline_cnt = Column(Integer, nullable=True)
     # 中间最多N个假K线，null表示使用全局配置
     fake_kline_cnt = Column(Integer, nullable=True)
-    # 创建时间
-    created_at = Column(DateTime, default=datetime.utcnow)
-    # 更新时间
-    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    # 创建时间（北京时间）
+    created_at = Column(DateTime, default=now_beijing)
+    # 更新时间（北京时间）
+    updated_at = Column(DateTime, default=now_beijing, onupdate=now_beijing)
     
     # 联合唯一约束：同一币种+间隔只能有一条配置
     __table_args__ = (

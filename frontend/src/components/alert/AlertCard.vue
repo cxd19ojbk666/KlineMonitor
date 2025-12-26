@@ -91,12 +91,12 @@
 
 <script setup lang="ts">
 import { computed } from 'vue'
-import dayjs from 'dayjs'
+import { formatShortTime } from '@/utils/time'
 import type { Alert, VolumeAlertData, RiseAlertData, OpenPriceAlertData } from '@/types'
 
 const props = defineProps<{ alert: Alert }>()
 
-const formattedTime = computed(() => dayjs(props.alert.created_at).format('MM-DD HH:mm'))
+const formattedTime = computed(() => formatShortTime(props.alert.created_at))
 
 const typeName = computed(() => {
   const names: Record<number, string> = { 1: '成交量', 2: '涨幅', 3: '开盘价匹配' }
@@ -123,7 +123,7 @@ const getPnlClass = (percent: number) => {
 
 const formatTime = (time?: string): string => {
   if (!time) return '-'
-  return dayjs(time).format('MM-DD HH:mm')
+  return formatShortTime(time)
 }
 </script>
 

@@ -617,15 +617,15 @@ class BinanceClient:
         
         try:
             if days_to_keep is not None:
-                # 使用统一的保留天数
-                cutoff_time = datetime.utcnow() - timedelta(days=days_to_keep)
+                # 使用统一的保留天数（使用北京时间）
+                cutoff_time = now_beijing() - timedelta(days=days_to_keep)
                 deleted = db.query(PriceKline).filter(PriceKline.open_time < cutoff_time).delete()
                 total_deleted = deleted
                 deleted_counts["all"] = deleted
             else:
-                # 按周期分别清理
+                # 按周期分别清理（使用北京时间）
                 for interval, retention_days in self.INTERVAL_RETENTION_DAYS.items():
-                    cutoff_time = datetime.utcnow() - timedelta(days=retention_days)
+                    cutoff_time = now_beijing() - timedelta(days=retention_days)
                     deleted = db.query(PriceKline).filter(
                         and_(
                             PriceKline.interval == interval,

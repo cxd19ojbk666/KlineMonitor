@@ -23,6 +23,8 @@ from pathlib import Path
 from queue import Queue
 from typing import Any, Dict, Optional, Tuple
 
+from .timezone import now_beijing
+
 
 # ============== 上下文追踪 ==============
 request_id_var: contextvars.ContextVar[str] = contextvars.ContextVar('request_id', default='-')
@@ -50,8 +52,10 @@ class JsonFormatter(logging.Formatter):
         self.include_extra = include_extra
     
     def format(self, record: logging.LogRecord) -> str:
+        # 使用北京时间
+        beijing_time = now_beijing()
         log_data = {
-            "timestamp": self.formatTime(record, "%Y-%m-%dT%H:%M:%S.%f")[:-3] + "Z",
+            "timestamp": beijing_time.strftime("%Y-%m-%dT%H:%M:%S.%f")[:-3] + "+08:00",
             "level": record.levelname,
             "logger": record.name,
             "file": record.filename,
