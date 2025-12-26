@@ -247,7 +247,9 @@ import type { FormInstance, FormRules } from 'element-plus'
 import { DataLine, TrendCharts, Connection, Check, Setting, Plus, Edit, Delete, Operation } from '@element-plus/icons-vue'
 import SymbolConfigDialog from '@/components/dialogs/SymbolConfigDialog.vue'
 import { logger } from '@/utils/logger'
+import { useConfigStore } from '@/stores/config'
 
+const configStore = useConfigStore()
 const formRef = ref<FormInstance>()
 const loading = ref(false)
 const saving = ref(false)
@@ -405,6 +407,8 @@ const handleSave = async () => {
       { key: '3_dedup_enabled', value: String(form.dedup_type3_enabled).toLowerCase() }
     ]
     await batchUpdateConfigs(configs)
+    // 通知配置变更，触发提示卡片数据刷新
+    configStore.notifyConfigChange()
     ElMessage.success('保存成功')
   } catch {
     ElMessage.error('保存配置失败')

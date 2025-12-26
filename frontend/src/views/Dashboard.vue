@@ -60,7 +60,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, onUnmounted, inject } from 'vue'
+import { ref, computed, onMounted, onUnmounted, inject, watch } from 'vue'
 import { ElMessage } from 'element-plus'
 import { Bell, PieChart as PieChartIcon, Delete } from '@element-plus/icons-vue'
 import { getDashboard, deleteAlert, createEventSource } from '@/api'
@@ -71,6 +71,9 @@ import PieChart from '@/components/common/PieChart.vue'
 import AlertCard from '@/components/alert/AlertCard.vue'
 import { logger } from '@/utils/logger'
 import { confirmDelete } from '@/utils/confirm'
+import { useConfigStore } from '@/stores/config'
+
+const configStore = useConfigStore()
 
 const stats = ref<DashboardStats>({
   total_alerts_today: 0,
@@ -142,6 +145,11 @@ onMounted(() => {
   fetchData()
   registerRefreshCallback?.(refreshCallback)
   eventSource = createEventSource(handleSSEEvent)
+})
+
+// 监听配置变更，自动刷新提示卡片数据
+watch(() => configStore.configVersion, () => {
+  fetchData()
 })
 
 onUnmounted(() => {

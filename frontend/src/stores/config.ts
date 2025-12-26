@@ -8,6 +8,9 @@ export const useConfigStore = defineStore('config', () => {
   const configs = ref<Record<string, string>>({})
   const loading = ref(false)
   const error = ref<string | null>(null)
+  
+  // 配置变更版本号，用于触发依赖组件刷新
+  const configVersion = ref(0)
 
   // 计算属性 - 获取各项配置值
   const volumePercent = computed(() => parseFloat(configs.value['1_volume_percent'] || '12.5'))
@@ -55,12 +58,19 @@ export const useConfigStore = defineStore('config', () => {
       configList.configs.forEach(c => {
         configs.value[c.key] = c.value
       })
+      // 触发配置变更通知
+      notifyConfigChange()
     } catch (e: any) {
       error.value = e.message || '批量更新配置失败'
       throw e
     } finally {
       loading.value = false
     }
+  }
+
+  // 通知配置变更
+  const notifyConfigChange = () => {
+    configVersion.value++
   }
 
   // 获取配置值
@@ -73,6 +83,7 @@ export const useConfigStore = defineStore('config', () => {
     configs,
     loading,
     error,
+    configVersion,
     // 计算属性
     volumePercent,
     risePercent,
@@ -84,6 +95,7 @@ export const useConfigStore = defineStore('config', () => {
     fetchConfigs,
     updateSingleConfig,
     batchUpdate,
-    getConfigValue
+    getConfigValue,
+    notifyConfigChange
   }
 })

@@ -91,12 +91,15 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, onMounted } from 'vue'
+import { ref, reactive, onMounted, watch } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import AlertCard from '@/components/alert/AlertCard.vue'
 import { getAlerts, deleteAlert, deleteAllAlerts, getSymbols } from '@/api'
 import type { Alert, Symbol } from '@/types'
 import { Search, Delete, Refresh } from '@element-plus/icons-vue'
+import { useConfigStore } from '@/stores/config'
+
+const configStore = useConfigStore()
 
 const loading = ref(false)
 const alerts = ref<Alert[]>([])
@@ -250,6 +253,11 @@ const handleClearAll = () => {
 
 onMounted(() => {
   loadSymbols()
+  fetchData()
+})
+
+// 监听配置变更，自动刷新提示卡片数据
+watch(() => configStore.configVersion, () => {
   fetchData()
 })
 </script>
