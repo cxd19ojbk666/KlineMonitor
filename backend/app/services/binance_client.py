@@ -325,7 +325,8 @@ class BinanceClient:
                     logger.debug(f"[Binance] {symbol} {interval} 更新当前K线: 获取最新{limit}条")
                 elif periods_needed > self.INCREMENTAL_SYNC_LIMIT:
                     # 缺失较多，使用startTime从数据库最新时间开始获取
-                    start_ts = int(start_time.replace(tzinfo=timezone.utc).timestamp() * 1000)
+                    # 注意：start_time 已经带有北京时区，直接用 timestamp() 转换为 UTC 时间戳
+                    start_ts = int(start_time.timestamp() * 1000)
                     limit = min(periods_needed + 1, 1500)  
                     logger.debug(f"[Binance] {symbol} {interval} 大量补齐: 从{start_time}开始获取{limit}条")
                 else:
