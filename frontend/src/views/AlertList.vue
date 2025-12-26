@@ -2,18 +2,29 @@
   <div class="page-wrapper">
     <div class="page-toolbar">
       <div class="page-toolbar__left">
-        <el-input
+        <el-autocomplete
           v-model="filters.symbol"
+          :fetch-suggestions="querySymbols"
           placeholder="输入交易对名称"
           clearable
           class="search-input"
           @keyup.enter="handleSearch"
           @clear="handleSearch"
+          @select="handleSearch"
+          :trigger-on-focus="false"
+          highlight-first-item
         >
           <template #prefix>
             <el-icon><Search /></el-icon>
           </template>
-        </el-input>
+          <template #default="{ item }">
+            <div class="symbol-suggestion">
+              <span class="symbol-name">{{ item.value }}</span>
+              <el-tag v-if="item.is_active" type="success" size="small">监控中</el-tag>
+              <el-tag v-else type="info" size="small">未监控</el-tag>
+            </div>
+          </template>
+        </el-autocomplete>
         
         <el-date-picker
           v-model="filters.timeRange"
@@ -83,8 +94,8 @@
 import { ref, reactive, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import AlertCard from '@/components/alert/AlertCard.vue'
-import { getAlerts, deleteAlert, deleteAllAlerts } from '@/api'
-import type { Alert } from '@/types'
+import { getAlerts, deleteAlert, deleteAllAlerts, getSymbols } from '@/api'
+import type { Alert, Symbol } from '@/types'
 import { Search, Delete, Refresh } from '@element-plus/icons-vue'
 
 const loading = ref(false)
@@ -92,6 +103,7 @@ const alerts = ref<Alert[]>([])
 const total = ref(0)
 const currentPage = ref(1)
 const pageSize = ref(20)
+const symbolsCache = ref<Symbol[]>([])
 
 const filters = reactive({
   alert_type: undefined as number | undefined,
@@ -137,6 +149,35 @@ const dateShortcuts = [
     }
   }
 ]
+
+// 加载交易对列表用于自动补全
+const loadSymbols = async () => {
+  try {
+    const data = await getSymbols({ limit: 1000 })
+    symbolsCache.value = data.items
+  } catch (error) {
+    console.error('加载交易对列表失败:', error)
+  }
+}
+
+// 交易对自动补全查询
+const querySymbols = (queryString: string, cb: (suggestions: any[]) => void) => {
+  if (!queryString) {
+    cb([])
+    return
+  }
+  
+  const query = queryString.toUpperCase()
+  const results = symbolsCache.value
+    .filter(s => s.symbol.includes(query))
+    .slice(0, 20)
+    .map(s => ({
+      value: s.symbol,
+      is_active: s.is_active
+    }))
+  
+  cb(results)
+}
 
 const fetchData = async () => {
   loading.value = true
@@ -207,7 +248,10 @@ const handleClearAll = () => {
     .catch(() => {})
 }
 
-onMounted(() => fetchData())
+onMounted(() => {
+  loadSymbols()
+  fetchData()
+})
 </script>
 
 <style scoped>
@@ -251,7 +295,7 @@ onMounted(() => fetchData())
 
 .card-grid { 
   display: grid; 
-  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); 
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); 
   gap: var(--spacing-lg); 
 }
 
@@ -261,5 +305,18 @@ onMounted(() => fetchData())
   display: flex; 
   justify-content: flex-end; 
   padding-top: var(--spacing-sm); 
+}
+
+.symbol-suggestion {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  gap: var(--spacing-sm);
+}
+
+.symbol-name {
+  flex: 1;
+  font-weight: 500;
 }
 </style>

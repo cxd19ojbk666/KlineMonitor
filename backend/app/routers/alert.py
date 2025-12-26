@@ -3,7 +3,6 @@
 ===========
 提供提醒记录的 CRUD 接口和仪表盘统计数据
 """
-from datetime import datetime
 from typing import Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Query
@@ -11,6 +10,7 @@ from sqlalchemy import func
 from sqlalchemy.orm import Session
 
 from ..core.deps import get_db_session
+from ..core.timezone import now_beijing
 from ..models.alert import Alert
 from ..models.symbol import Symbol
 from ..schemas.alert import AlertResponse, AlertListResponse, DashboardStats
@@ -21,11 +21,11 @@ router = APIRouter(prefix="/alerts", tags=["提醒记录"])
 @router.get("", response_model=AlertListResponse)
 def get_alerts(
     skip: int = Query(0, ge=0),
-    limit: int = Query(50, ge=1, le=100),
+    limit: int = Query(50, ge=1, le=1000),
     alert_type: Optional[int] = Query(None, ge=1, le=3),
     symbol: Optional[str] = None,
-    start_time: Optional[datetime] = Query(None, description="开始时间"),
-    end_time: Optional[datetime] = Query(None, description="结束时间"),
+    start_time: Optional[str] = Query(None, description="开始时间"),
+    end_time: Optional[str] = Query(None, description="结束时间"),
     db: Session = Depends(get_db_session)
 ):
     """
@@ -35,9 +35,11 @@ def get_alerts(
     - **limit**: 返回记录数限制
     - **alert_type**: 按类型筛选（1:成交量, 2:涨幅, 3:开盘价匹配）
     - **symbol**: 按交易对筛选
-    - **start_time**: 开始时间
-    - **end_time**: 结束时间
+    - **start_time**: 开始时间（ISO格式字符串）
+    - **end_time**: 结束时间（ISO格式字符串）
     """
+    from datetime import datetime
+    
     query = db.query(Alert)
     
     if alert_type:
@@ -45,9 +47,11 @@ def get_alerts(
     if symbol:
         query = query.filter(Alert.symbol == symbol)
     if start_time:
-        query = query.filter(Alert.created_at >= start_time)
+        start_dt = datetime.fromisoformat(start_time.replace('Z', '+00:00'))
+        query = query.filter(Alert.created_at >= start_dt)
     if end_time:
-        query = query.filter(Alert.created_at <= end_time)
+        end_dt = datetime.fromisoformat(end_time.replace('Z', '+00:00'))
+        query = query.filter(Alert.created_at <= end_dt)
     
     total = query.count()
     items = query.order_by(Alert.created_at.desc()).offset(skip).limit(limit).all()

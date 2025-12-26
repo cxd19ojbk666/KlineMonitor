@@ -8,7 +8,7 @@
 - 需求二：涨幅监控 - 15分钟累计涨幅检测
 - 需求三：开盘价匹配 - 历史开盘价匹配检测
 """
-from datetime import datetime, timedelta
+from datetime import timedelta
 
 from sqlalchemy.orm import Session
 
@@ -16,6 +16,7 @@ from ..core.config import settings
 from ..core.database import SessionLocal
 from ..core.logger import logger
 from ..core.stats import monitor_stats_collector, MonitorResult
+from ..core.timezone import now_beijing
 from ..models.kline import PriceKline
 from ..models.config import SymbolConfig
 from .binance_client import binance_client
