@@ -24,6 +24,8 @@ def get_alerts(
     limit: int = Query(50, ge=1, le=100),
     alert_type: Optional[int] = Query(None, ge=1, le=3),
     symbol: Optional[str] = None,
+    start_time: Optional[datetime] = Query(None, description="开始时间"),
+    end_time: Optional[datetime] = Query(None, description="结束时间"),
     db: Session = Depends(get_db_session)
 ):
     """
@@ -33,6 +35,8 @@ def get_alerts(
     - **limit**: 返回记录数限制
     - **alert_type**: 按类型筛选（1:成交量, 2:涨幅, 3:开盘价匹配）
     - **symbol**: 按交易对筛选
+    - **start_time**: 开始时间
+    - **end_time**: 结束时间
     """
     query = db.query(Alert)
     
@@ -40,6 +44,10 @@ def get_alerts(
         query = query.filter(Alert.alert_type == alert_type)
     if symbol:
         query = query.filter(Alert.symbol == symbol)
+    if start_time:
+        query = query.filter(Alert.created_at >= start_time)
+    if end_time:
+        query = query.filter(Alert.created_at <= end_time)
     
     total = query.count()
     items = query.order_by(Alert.created_at.desc()).offset(skip).limit(limit).all()

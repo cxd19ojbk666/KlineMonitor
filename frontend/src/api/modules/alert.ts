@@ -6,6 +6,8 @@ export const getAlerts = (params: {
   limit?: number
   alert_type?: number
   symbol?: string
+  start_time?: string
+  end_time?: string
 }): Promise<AlertListResponse> => {
   return request.get('/alerts', { params })
 }

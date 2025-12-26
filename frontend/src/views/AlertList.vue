@@ -15,6 +15,20 @@
           </template>
         </el-input>
         
+        <el-date-picker
+          v-model="filters.timeRange"
+          type="datetimerange"
+          range-separator="至"
+          start-placeholder="开始时间"
+          end-placeholder="结束时间"
+          format="YYYY-MM-DD HH:mm"
+          value-format="YYYY-MM-DDTHH:mm:ss"
+          :shortcuts="dateShortcuts"
+          clearable
+          class="time-range-picker"
+          @change="handleSearch"
+        />
+
         <el-select v-model="filters.alert_type" placeholder="全部类型" class="filter-select" clearable @change="handleSearch">
           <el-option label="全部类型" :value="undefined" />
           <el-option label="成交量提醒" :value="1" />
@@ -23,7 +37,6 @@
         </el-select>
 
         <div class="button-group">
-          <el-button type="primary" @click="handleSearch">搜索</el-button>
           <el-button @click="handleReset">重置</el-button>
         </div>
       </div>
@@ -82,8 +95,48 @@ const pageSize = ref(20)
 
 const filters = reactive({
   alert_type: undefined as number | undefined,
-  symbol: ''
+  symbol: '',
+  timeRange: null as [string, string] | null
 })
+
+const dateShortcuts = [
+  {
+    text: '最近1小时',
+    value: () => {
+      const end = new Date()
+      const start = new Date()
+      start.setTime(start.getTime() - 3600 * 1000)
+      return [start, end]
+    }
+  },
+  {
+    text: '今天',
+    value: () => {
+      const end = new Date()
+      const start = new Date()
+      start.setHours(0, 0, 0, 0)
+      return [start, end]
+    }
+  },
+  {
+    text: '最近7天',
+    value: () => {
+      const end = new Date()
+      const start = new Date()
+      start.setTime(start.getTime() - 3600 * 1000 * 24 * 7)
+      return [start, end]
+    }
+  },
+  {
+    text: '最近30天',
+    value: () => {
+      const end = new Date()
+      const start = new Date()
+      start.setTime(start.getTime() - 3600 * 1000 * 24 * 30)
+      return [start, end]
+    }
+  }
+]
 
 const fetchData = async () => {
   loading.value = true
@@ -92,7 +145,9 @@ const fetchData = async () => {
       skip: (currentPage.value - 1) * pageSize.value,
       limit: pageSize.value,
       alert_type: filters.alert_type,
-      symbol: filters.symbol || undefined
+      symbol: filters.symbol || undefined,
+      start_time: filters.timeRange?.[0] || undefined,
+      end_time: filters.timeRange?.[1] || undefined
     })
     alerts.value = data.items
     total.value = data.total
@@ -104,7 +159,7 @@ const fetchData = async () => {
 }
 
 const handleSearch = () => { currentPage.value = 1; fetchData() }
-const handleReset = () => { filters.alert_type = undefined; filters.symbol = ''; currentPage.value = 1; fetchData() }
+const handleReset = () => { filters.alert_type = undefined; filters.symbol = ''; filters.timeRange = null; currentPage.value = 1; fetchData() }
 const handlePageChange = () => fetchData()
 const handleSizeChange = () => { currentPage.value = 1; fetchData() }
 
@@ -185,6 +240,7 @@ onMounted(() => fetchData())
 /* Inherited from theme.css but good to be explicit if scoped */
 .search-input { width: 240px; }
 .filter-select { width: 160px; }
+.time-range-picker { width: 360px; }
 
 .page-content { 
   flex: 1; 

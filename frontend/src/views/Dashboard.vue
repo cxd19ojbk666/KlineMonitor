@@ -61,7 +61,7 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted, inject } from 'vue'
-import { ElMessage, ElMessageBox } from 'element-plus'
+import { ElMessage } from 'element-plus'
 import { Bell, PieChart as PieChartIcon, Delete } from '@element-plus/icons-vue'
 import { getDashboard, deleteAlert, createEventSource } from '@/api'
 import type { DashboardStats } from '@/types'
@@ -70,6 +70,7 @@ import StatCard from '@/components/common/StatCard.vue'
 import PieChart from '@/components/common/PieChart.vue'
 import AlertCard from '@/components/alert/AlertCard.vue'
 import { logger } from '@/utils/logger'
+import { confirmDelete } from '@/utils/confirm'
 
 const stats = ref<DashboardStats>({
   total_alerts_today: 0,
