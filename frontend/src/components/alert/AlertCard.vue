@@ -96,7 +96,14 @@ import type { Alert, VolumeAlertData, RiseAlertData, OpenPriceAlertData } from '
 
 const props = defineProps<{ alert: Alert }>()
 
-const formattedTime = computed(() => formatShortTime(props.alert.created_at))
+const formattedTime = computed(() => {
+  // 开盘价匹配 time_d，其他类型使用 created_at
+  if (props.alert.alert_type === 3) {
+    const openPriceData = props.alert.data as OpenPriceAlertData
+    return formatShortTime(openPriceData.time_d)
+  }
+  return formatShortTime(props.alert.created_at)
+})
 
 const typeName = computed(() => {
   const names: Record<number, string> = { 1: '成交量', 2: '涨幅', 3: '开盘价匹配' }
