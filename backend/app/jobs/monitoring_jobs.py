@@ -25,7 +25,7 @@ from ..services.monitor_service import monitor_service
 SYNC_CONCURRENCY = 600  # K线同步最大并发数（已初始化的增量同步）
 INITIAL_SYNC_CONCURRENCY = 20  # 初始同步最大并发数（控制API请求量）
 INITIAL_SYNC_BATCH_SIZE = 5  # 每分钟最多初始化的新交易对数量
-MONITOR_CONCURRENCY = 100  # 监控任务最大并发数（提升到100，因为主要是数据库查询）
+MONITOR_CONCURRENCY = 600  # 监控任务最大并发数（提升到600，因为主要是数据库查询）
 
 
 async def get_active_symbols() -> List[str]:

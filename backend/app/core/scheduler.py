@@ -34,7 +34,8 @@ def start_scheduler():
         CronTrigger(second=0),
         id="sync_klines_unified",
         name="K线同步与监控",
-        replace_existing=True
+        replace_existing=True,
+        max_instances=3  # 允许并发运行，防止任务超时导致跳过
     )
     
     # 添加K线清理任务：每天定时执行
